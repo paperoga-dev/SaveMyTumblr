@@ -18,6 +18,17 @@
 
 package com.github.savemytumblr;
 
+import java.lang.reflect.InvocationTargetException;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import org.scribe.builder.ServiceBuilder;
+import org.scribe.exceptions.OAuthException;
+import org.scribe.model.Token;
+import org.scribe.oauth.OAuthService;
+
 import com.github.savemytumblr.api.Authenticate;
 import com.github.savemytumblr.api.OAuthApi;
 import com.github.savemytumblr.api.array.ContentInterface;
@@ -26,43 +37,37 @@ import com.github.savemytumblr.exception.BaseException;
 import com.github.savemytumblr.exception.NetworkException;
 import com.github.savemytumblr.user.simple.Info;
 
-import org.scribe.builder.ServiceBuilder;
-import org.scribe.exceptions.OAuthException;
-import org.scribe.model.Token;
-import org.scribe.oauth.OAuthService;
-
-import java.lang.reflect.InvocationTargetException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
 public final class TumblrClient {
 
-	public interface Executor {
-		void execute(Runnable runnable);
-	}
+    public interface Executor {
+        void execute(Runnable runnable);
+    }
 
-	public interface Logger {
-		void info(String msg);
-		void warning(String msg);
-		void error(String msg);
-	}
-	
-	public interface Storage {
-		boolean has(String key);
-		String get(String key, String defValue);
-		void put(String key, String value);
-		void remove(String key);
-	}
+    public interface Logger {
+        void info(String msg);
+
+        void warning(String msg);
+
+        void error(String msg);
+    }
+
+    public interface Storage {
+        boolean has(String key);
+
+        String get(String key, String defValue);
+
+        void put(String key, String value);
+
+        void remove(String key);
+    }
 
     public interface OnLoginListener {
         void onAccessGranted();
-        void onAccessRequest(
-                Authenticate authenticator,
-                Token requestToken,
-                String authenticationUrl);
+
+        void onAccessRequest(Authenticate authenticator, Token requestToken, String authenticationUrl);
+
         void onAccessDenied();
+
         void onLoginFailure(BaseException e);
     }
 
@@ -72,7 +77,7 @@ public final class TumblrClient {
     private Token authToken;
     private final OAuthService oAuthService;
     private OnLoginListener onLoginListener;
-    
+
     private Executor executor;
     private Logger logger;
     private Storage storage;
@@ -85,27 +90,24 @@ public final class TumblrClient {
         this.executor = executor;
         this.logger = logger;
         this.storage = storage;
-        
+
         authToken = null;
-        oAuthService = new ServiceBuilder()
-                .provider(OAuthApi.class)
-                .apiKey(Constants.CONSUMER_KEY)
-                .apiSecret(Constants.CONSUMER_SECRET)
-                .build();
+        oAuthService = new ServiceBuilder().provider(OAuthApi.class).apiKey(Constants.CONSUMER_KEY)
+                .apiSecret(Constants.CONSUMER_SECRET).build();
         onLoginListener = null;
 
         this.me = null;
-        
+
         this.appName = "TumblrBack";
         this.appVersion = "0.0.1";
     }
-    
+
     protected Executor getExecutor() {
-    	return executor;
+        return executor;
     }
-    
+
     private Logger getLogger() {
-    	return logger;
+        return logger;
     }
 
     private void doLogin() {
@@ -113,9 +115,7 @@ public final class TumblrClient {
 
         auth.setOnAuthenticationListener(new Authenticate.OnAuthenticationListener() {
             @Override
-            public void onAuthenticationRequest(
-                    Authenticate authenticator,
-                    Token requestToken,
+            public void onAuthenticationRequest(Authenticate authenticator, Token requestToken,
                     String authenticationUrl) {
                 onLoginListener.onAccessRequest(authenticator, requestToken, authenticationUrl);
             }
@@ -137,55 +137,47 @@ public final class TumblrClient {
     private void login(Token authToken) {
         this.authToken = authToken;
 
-        getExecutor().execute(
-            new Info.Api(
-                    oAuthService,
-                    authToken,
-                    appName,
-                    appVersion)
-                    .call(getExecutor(), getLogger(), new HashMap<String, String>(), new CompletionInterface<Info.Data>() {
-                        @Override
-                        public void onSuccess(Info.Data result) {
-                            me = result;
+        getExecutor().execute(new Info.Api(oAuthService, authToken, appName, appVersion).call(getExecutor(),
+                getLogger(), new HashMap<String, String>(), new CompletionInterface<Info.Data>() {
+                    @Override
+                    public void onSuccess(Info.Data result) {
+                        me = result;
 
-                            if (onLoginListener != null)
-                                onLoginListener.onAccessGranted();
-                            
-                            storage.put(Constants.OAUTH_TOKEN_KEY, authToken.getToken());
-                            storage.put(Constants.OAUTH_TOKEN_SECRET_KEY, authToken.getSecret());
+                        if (onLoginListener != null)
+                            onLoginListener.onAccessGranted();
+
+                        storage.put(Constants.OAUTH_TOKEN_KEY, authToken.getToken());
+                        storage.put(Constants.OAUTH_TOKEN_SECRET_KEY, authToken.getSecret());
+                    }
+
+                    @Override
+                    public void onFailure(BaseException e) {
+                        if (!(e instanceof NetworkException)) {
+                            // we can reach Tumblr, but we cannot access it. So, throw away our tokens, and
+                            // let's ask a new authentication
+                            logger.warning("Auth token not valid");
+
+                            logout();
                         }
 
-                        @Override
-                        public void onFailure(BaseException e) {
-                            if (!(e instanceof NetworkException)) {
-                                // we can reach Tumblr, but we cannot access it. So, throw away our tokens, and
-                                // let's ask a new authentication
-                                logger.warning("Auth token not valid");
+                        // else we cannot reach Tumblr, fail but do not remove our tokens
 
-                                logout();
-                            }
-
-                            // else we cannot reach Tumblr, fail but do not remove our tokens
-
-                            if (onLoginListener != null)
-                                onLoginListener.onLoginFailure(e);
-                        }
-                    })
-        );
+                        if (onLoginListener != null)
+                            onLoginListener.onLoginFailure(e);
+                    }
+                }));
     }
 
     public void login() {
-    	if (onLoginListener == null) {
-    		throw new NullPointerException("onLoginListener is null");
-    	}
+        if (onLoginListener == null) {
+            throw new NullPointerException("onLoginListener is null");
+        }
 
         if (storage.has(Constants.OAUTH_TOKEN_KEY) && storage.has(Constants.OAUTH_TOKEN_SECRET_KEY)) {
 
             // ok, we already have authentication tokens, let's try them first
-            authToken = new Token(
-            		storage.get(Constants.OAUTH_TOKEN_KEY, ""),
-            		storage.get(Constants.OAUTH_TOKEN_SECRET_KEY, "")
-            );
+            authToken = new Token(storage.get(Constants.OAUTH_TOKEN_KEY, ""),
+                    storage.get(Constants.OAUTH_TOKEN_SECRET_KEY, ""));
             logger.info("Stored Access Token: " + authToken);
 
             login(authToken);
@@ -202,8 +194,7 @@ public final class TumblrClient {
     }
 
     /* **** SINGLE ITEM API CALL **** */
-    private <T> void doCall(
-            final com.github.savemytumblr.api.simple.ApiInterface<T> obj,
+    private <T> void doCall(final com.github.savemytumblr.api.simple.ApiInterface<T> obj,
             final Map<String, String> queryParams,
             final com.github.savemytumblr.api.simple.CompletionInterface<T> onCompletion) {
         if (authToken == null) {
@@ -219,11 +210,8 @@ public final class TumblrClient {
     /* **** SINGLE ITEM API CALL **** */
 
     /* **** ARRAY BASED API CALL **** */
-    private <T, W extends ContentInterface<T>> void doCall(
-            final List<T> resultList,
-            final com.github.savemytumblr.api.array.ApiInterface<T, W> obj,
-            final Integer offset,
-            final Integer limit,
+    private <T, W extends ContentInterface<T>> void doCall(final List<T> resultList,
+            final com.github.savemytumblr.api.array.ApiInterface<T, W> obj, final Integer offset, final Integer limit,
             final Map<String, String> queryParams,
             final com.github.savemytumblr.api.array.CompletionInterface<T, W> onCompletion) {
 
@@ -235,346 +223,208 @@ public final class TumblrClient {
             return;
         }
 
-        int newLimit = (limit == -1)? 20 : Math.min(20, limit);
+        int newLimit = (limit == -1) ? 20 : Math.min(20, limit);
 
-        getExecutor().execute(
-                obj.call(
-                		getExecutor(),
-                		getLogger(),
-                        resultList,
-                        queryParams,
-                        offset,
-                        newLimit,
-                        new com.github.savemytumblr.api.array.CompletionInterface<T, W>() {
+        getExecutor().execute(obj.call(getExecutor(), getLogger(), resultList, queryParams, offset, newLimit,
+                new com.github.savemytumblr.api.array.CompletionInterface<T, W>() {
 
-                            @Override
-                            public void onSuccess(List<T> result, int offset, int limit, int count) {
-                                resultList.addAll(result);
-                                if (result.isEmpty()) {
-                                    // This is a Tumblr bug, some array-based APIs return less items
-                                    // than expected. In this case, we return earlier, with the real
-                                    // number of items.
+                    @Override
+                    public void onSuccess(List<T> result, int offset, int limit, int count) {
+                        resultList.addAll(result);
+                        if (result.isEmpty()) {
+                            // This is a Tumblr bug, some array-based APIs return less items
+                            // than expected. In this case, we return earlier, with the real
+                            // number of items.
 
+                            if (onCompletion != null)
+                                onCompletion.onSuccess(resultList, obj.getOffset(), obj.getLimit(), resultList.size());
+                            return;
+                        }
+
+                        int newOffset = offset + resultList.size();
+                        int newLimit;
+
+                        if (count == -1) {
+                            // cannot get the end of the list
+
+                            if (obj.getLimit() == -1) {
+                                // the caller did not specify a limit, so the first content
+                                // is fine, we're done
+                                if (onCompletion != null)
+                                    onCompletion.onSuccess(resultList, obj.getOffset(), obj.getLimit(),
+                                            resultList.size());
+                                return;
+                            } else {
+                                if (resultList.size() >= obj.getLimit()) {
+                                    // fetched enough content, we're done
                                     if (onCompletion != null)
-                                        onCompletion.onSuccess(resultList, obj.getOffset(), obj.getLimit(), resultList.size());
+                                        onCompletion.onSuccess(resultList, obj.getOffset(), obj.getLimit(),
+                                                resultList.size());
                                     return;
                                 }
 
-                                int newOffset = offset + resultList.size();
-                                int newLimit;
-
-                                if (count == -1) {
-                                    // cannot get the end of the list
-
-                                    if (obj.getLimit() == -1) {
-                                        // the caller did not specify a limit, so the first content
-                                        // is fine, we're done
-                                        if (onCompletion != null)
-                                            onCompletion.onSuccess(resultList, obj.getOffset(), obj.getLimit(), resultList.size());
-                                        return;
-                                    } else {
-                                        if (resultList.size() >= obj.getLimit()) {
-                                            // fetched enough content, we're done
-                                            if (onCompletion != null)
-                                                onCompletion.onSuccess(resultList, obj.getOffset(), obj.getLimit(), resultList.size());
-                                            return;
-                                        }
-
-                                        newLimit = obj.getLimit() - resultList.size();
-                                    }
-
-                                } else {
-
-                                    newLimit = ((obj.getLimit() == -1)? count : obj.getLimit()) - resultList.size();
-
-                                    if (newLimit <= 0) {
-                                        // fetched enough content, we're done
-                                        if (onCompletion != null)
-                                            onCompletion.onSuccess(resultList, obj.getOffset(), obj.getLimit(), resultList.size());
-                                        return;
-                                    }
-                                }
-
-                                doCall(resultList,
-                                        obj,
-                                        newOffset,
-                                        newLimit,
-                                        queryParams,
-                                        onCompletion);
+                                newLimit = obj.getLimit() - resultList.size();
                             }
 
-                            @Override
-                            public void onFailure(BaseException e) {
-                                onCompletion.onFailure(e);
+                        } else {
+
+                            newLimit = ((obj.getLimit() == -1) ? count : obj.getLimit()) - resultList.size();
+
+                            if (newLimit <= 0) {
+                                // fetched enough content, we're done
+                                if (onCompletion != null)
+                                    onCompletion.onSuccess(resultList, obj.getOffset(), obj.getLimit(),
+                                            resultList.size());
+                                return;
                             }
                         }
-                )
-        );
+
+                        doCall(resultList, obj, newOffset, newLimit, queryParams, onCompletion);
+                    }
+
+                    @Override
+                    public void onFailure(BaseException e) {
+                        onCompletion.onFailure(e);
+                    }
+                }));
     }
     /* **** ARRAY BASED API CALL **** */
 
     /* **** USER BASED API CALLS **** */
-    public <T> void call(
-            final Class<? extends com.github.savemytumblr.api.simple.ApiInterface<T>> clazz,
+    public <T> void call(final Class<? extends com.github.savemytumblr.api.simple.ApiInterface<T>> clazz,
             final Map<String, String> queryParams,
             final com.github.savemytumblr.api.simple.CompletionInterface<T> onCompletion) {
 
-        Class<?>[] cArg = new Class<?>[] {
-                OAuthService.class,
-                Token.class,
-                String.class,
-                String.class
-        };
+        Class<?>[] cArg = new Class<?>[] { OAuthService.class, Token.class, String.class, String.class };
 
         try {
-            doCall(
-                    clazz.getDeclaredConstructor(cArg)
-                            .newInstance(
-                                    oAuthService,
-                                    authToken,
-                                    appName,
-                                    appVersion
-                            ),
-                    queryParams,
-                    onCompletion
-            );
-        } catch (IllegalAccessException |
-                InstantiationException |
-                InvocationTargetException |
-                NoSuchMethodException e) {
+            doCall(clazz.getDeclaredConstructor(cArg).newInstance(oAuthService, authToken, appName, appVersion),
+                    queryParams, onCompletion);
+        } catch (IllegalAccessException | InstantiationException | InvocationTargetException
+                | NoSuchMethodException e) {
             e.printStackTrace();
         }
     }
 
-    public <T> void call(
-            final Class<? extends com.github.savemytumblr.api.simple.ApiInterface<T>> clazz,
+    public <T> void call(final Class<? extends com.github.savemytumblr.api.simple.ApiInterface<T>> clazz,
             final CompletionInterface<T> onCompletion) {
         call(clazz, new HashMap<String, String>(), onCompletion);
     }
 
     public <T, W extends ContentInterface<T>> void call(
-            final Class<? extends com.github.savemytumblr.api.array.ApiInterface<T, W>> clazz,
-            final int offset,
-            final int limit,
-            final Map<String, String> queryParams,
+            final Class<? extends com.github.savemytumblr.api.array.ApiInterface<T, W>> clazz, final int offset,
+            final int limit, final Map<String, String> queryParams,
             final com.github.savemytumblr.api.array.CompletionInterface<T, W> onCompletion) {
 
-        Class<?>[] cArg = new Class<?>[] {
-                OAuthService.class,
-                Token.class,
-                String.class,
-                String.class,
-                Integer.class,
-                Integer.class
-        };
+        Class<?>[] cArg = new Class<?>[] { OAuthService.class, Token.class, String.class, String.class, Integer.class,
+                Integer.class };
 
         try {
-            doCall(
-                    new ArrayList<T>(),
-                    clazz.getDeclaredConstructor(cArg)
-                            .newInstance(
-                                    oAuthService,
-                                    authToken,
-                                    appName,
-                                    appVersion,
-                                    offset,
-                                    limit
-                            ),
-                    offset,
-                    limit,
-                    queryParams,
-                    onCompletion
-            );
-        } catch (IllegalAccessException |
-                InstantiationException |
-                InvocationTargetException |
-                NoSuchMethodException e) {
+            doCall(new ArrayList<T>(), clazz.getDeclaredConstructor(cArg).newInstance(oAuthService, authToken, appName,
+                    appVersion, offset, limit), offset, limit, queryParams, onCompletion);
+        } catch (IllegalAccessException | InstantiationException | InvocationTargetException
+                | NoSuchMethodException e) {
             e.printStackTrace();
         }
     }
 
     public <T, W extends ContentInterface<T>> void call(
-            final Class<? extends com.github.savemytumblr.api.array.ApiInterface<T, W>> clazz,
-            final int offset,
+            final Class<? extends com.github.savemytumblr.api.array.ApiInterface<T, W>> clazz, final int offset,
             final Map<String, String> queryParams,
             final com.github.savemytumblr.api.array.CompletionInterface<T, W> onCompletion) {
         call(clazz, offset, 20, queryParams, onCompletion);
     }
 
     public <T, W extends ContentInterface<T>> void call(
-            final Class<? extends com.github.savemytumblr.api.array.ApiInterface<T, W>> clazz,
-            final int offset,
-            final int limit,
-            final com.github.savemytumblr.api.array.CompletionInterface<T, W> onCompletion) {
+            final Class<? extends com.github.savemytumblr.api.array.ApiInterface<T, W>> clazz, final int offset,
+            final int limit, final com.github.savemytumblr.api.array.CompletionInterface<T, W> onCompletion) {
         call(clazz, offset, limit, new HashMap<String, String>(), onCompletion);
     }
 
     public <T, W extends ContentInterface<T>> void call(
-            final Class<? extends com.github.savemytumblr.api.array.ApiInterface<T, W>> clazz,
-            final int offset,
+            final Class<? extends com.github.savemytumblr.api.array.ApiInterface<T, W>> clazz, final int offset,
             final com.github.savemytumblr.api.array.CompletionInterface<T, W> onCompletion) {
         call(clazz, offset, 20, new HashMap<String, String>(), onCompletion);
     }
     /* **** USER BASED API CALLS **** */
 
     /* **** BLOG BASED API CALLS **** */
-    public <T> void call(
-            final Class<? extends com.github.savemytumblr.blog.simple.ApiInterface<T>> clazz,
-            final String blogId,
-            final Map<String, String> queryParams,
-            final CompletionInterface<T> onCompletion) {
+    public <T> void call(final Class<? extends com.github.savemytumblr.blog.simple.ApiInterface<T>> clazz,
+            final String blogId, final Map<String, String> queryParams, final CompletionInterface<T> onCompletion) {
 
-        Class<?>[] cArg = new Class<?>[] {
-                OAuthService.class,
-                Token.class,
-                String.class,
-                String.class,
-                String.class
-        };
+        Class<?>[] cArg = new Class<?>[] { OAuthService.class, Token.class, String.class, String.class, String.class };
 
         try {
-            doCall(
-                    clazz.getDeclaredConstructor(cArg)
-                            .newInstance(
-                                    oAuthService,
-                                    authToken,
-                                    appName,
-                                    appVersion,
-                                    blogId
-                            ),
-                    queryParams,
-                    onCompletion
-            );
-        } catch (IllegalAccessException |
-                InstantiationException |
-                InvocationTargetException |
-                NoSuchMethodException e) {
+            doCall(clazz.getDeclaredConstructor(cArg).newInstance(oAuthService, authToken, appName, appVersion, blogId),
+                    queryParams, onCompletion);
+        } catch (IllegalAccessException | InstantiationException | InvocationTargetException
+                | NoSuchMethodException e) {
             e.printStackTrace();
         }
     }
 
-    public <T> void call(
-            final Class<? extends com.github.savemytumblr.blog.simple.ApiInterface<T>> clazz,
-            final String blogId,
-            final CompletionInterface<T> onCompletion) {
+    public <T> void call(final Class<? extends com.github.savemytumblr.blog.simple.ApiInterface<T>> clazz,
+            final String blogId, final CompletionInterface<T> onCompletion) {
         call(clazz, blogId, new HashMap<String, String>(), onCompletion);
     }
 
     public <T, W extends ContentInterface<T>> void call(
-            final Class<? extends com.github.savemytumblr.blog.array.ApiInterface<T, W>> clazz,
-            final String blogId,
-            final int offset,
-            final int limit,
-            final Map<String, String> queryParams,
+            final Class<? extends com.github.savemytumblr.blog.array.ApiInterface<T, W>> clazz, final String blogId,
+            final int offset, final int limit, final Map<String, String> queryParams,
             final com.github.savemytumblr.api.array.CompletionInterface<T, W> onCompletion) {
 
-        Class<?>[] cArg = new Class<?>[] {
-                OAuthService.class,
-                Token.class,
-                String.class,
-                String.class,
-                Integer.class,
-                Integer.class,
-                String.class
-        };
+        Class<?>[] cArg = new Class<?>[] { OAuthService.class, Token.class, String.class, String.class, Integer.class,
+                Integer.class, String.class };
 
         try {
-            doCall(
-                    new ArrayList<T>(),
-                    clazz.getDeclaredConstructor(cArg)
-                            .newInstance(
-                                    oAuthService,
-                                    authToken,
-                                    appName,
-                                    appVersion,
-                                    offset,
-                                    limit,
-                                    blogId
-                            ),
-                    offset,
-                    limit,
-                    queryParams,
-                    onCompletion
-            );
-        } catch (IllegalAccessException |
-                InstantiationException |
-                InvocationTargetException |
-                NoSuchMethodException e) {
+            doCall(new ArrayList<T>(), clazz.getDeclaredConstructor(cArg).newInstance(oAuthService, authToken, appName,
+                    appVersion, offset, limit, blogId), offset, limit, queryParams, onCompletion);
+        } catch (IllegalAccessException | InstantiationException | InvocationTargetException
+                | NoSuchMethodException e) {
             e.printStackTrace();
         }
     }
 
     public <T, W extends ContentInterface<T>> void call(
-            final Class<? extends com.github.savemytumblr.blog.array.ApiInterface<T, W>> clazz,
-            final String blogId,
-            final int offset,
-            final Map<String, String> queryParams,
+            final Class<? extends com.github.savemytumblr.blog.array.ApiInterface<T, W>> clazz, final String blogId,
+            final int offset, final Map<String, String> queryParams,
             final com.github.savemytumblr.api.array.CompletionInterface<T, W> onCompletion) {
         call(clazz, blogId, offset, 20, queryParams, onCompletion);
     }
 
     public <T, W extends ContentInterface<T>> void call(
-            final Class<? extends com.github.savemytumblr.blog.array.ApiInterface<T, W>> clazz,
-            final String blogId,
-            final int offset,
-            final int limit,
+            final Class<? extends com.github.savemytumblr.blog.array.ApiInterface<T, W>> clazz, final String blogId,
+            final int offset, final int limit,
             final com.github.savemytumblr.api.array.CompletionInterface<T, W> onCompletion) {
         call(clazz, blogId, offset, limit, new HashMap<String, String>(), onCompletion);
     }
 
     public <T, W extends ContentInterface<T>> void call(
-            final Class<? extends com.github.savemytumblr.blog.array.ApiInterface<T, W>> clazz,
-            final String blogId,
-            final int offset,
-            final com.github.savemytumblr.api.array.CompletionInterface<T, W> onCompletion) {
+            final Class<? extends com.github.savemytumblr.blog.array.ApiInterface<T, W>> clazz, final String blogId,
+            final int offset, final com.github.savemytumblr.api.array.CompletionInterface<T, W> onCompletion) {
         call(clazz, blogId, offset, 20, new HashMap<String, String>(), onCompletion);
     }
     /* **** BLOG BASED API CALLS **** */
 
     /* **** POST BASED API CALLS **** */
-    public <T> void call(
-            final Class<? extends com.github.savemytumblr.blog.simple.ApiInterface<T>> clazz,
-            final String blogId,
-            final String postId,
-            final Map<String, String> queryParams,
+    public <T> void call(final Class<? extends com.github.savemytumblr.blog.simple.ApiInterface<T>> clazz,
+            final String blogId, final String postId, final Map<String, String> queryParams,
             final CompletionInterface<T> onCompletion) {
 
-        Class<?>[] cArg = new Class<?>[] {
-                OAuthService.class,
-                Token.class,
-                String.class,
-                String.class,
-                String.class,
-                String.class
-        };
+        Class<?>[] cArg = new Class<?>[] { OAuthService.class, Token.class, String.class, String.class, String.class,
+                String.class };
 
         try {
-            doCall(
-                    clazz.getDeclaredConstructor(cArg)
-                            .newInstance(
-                                    oAuthService,
-                                    authToken,
-                                    appName,
-                                    appVersion,
-                                    blogId,
-                                    postId
-                            ),
-                    queryParams,
-                    onCompletion
-            );
-        } catch (IllegalAccessException |
-                InstantiationException |
-                InvocationTargetException |
-                NoSuchMethodException e) {
+            doCall(clazz.getDeclaredConstructor(cArg).newInstance(oAuthService, authToken, appName, appVersion, blogId,
+                    postId), queryParams, onCompletion);
+        } catch (IllegalAccessException | InstantiationException | InvocationTargetException
+                | NoSuchMethodException e) {
             e.printStackTrace();
         }
     }
 
-    public <T> void call(
-            final Class<? extends com.github.savemytumblr.blog.simple.ApiInterface<T>> clazz,
-            final String blogId,
-            final String postId,
-            final CompletionInterface<T> onCompletion) {
+    public <T> void call(final Class<? extends com.github.savemytumblr.blog.simple.ApiInterface<T>> clazz,
+            final String blogId, final String postId, final CompletionInterface<T> onCompletion) {
         call(clazz, blogId, postId, new HashMap<String, String>(), onCompletion);
     }
     /* **** POST BASED API CALLS **** */
