@@ -1,6 +1,10 @@
 package com.github.savemytumblr;
 
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Arrays;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.prefs.BackingStoreException;
 import java.util.prefs.Preferences;
 
@@ -22,20 +26,15 @@ import com.github.savemytumblr.exception.BaseException;
 
 public class MainApp {
     private static boolean loggedIn = false;
+    private static Backup backup = null;
 
     public static void main(String[] args) {
-        // final Logger log = Logger.getLogger(MainApp.class.getName());
         final Preferences prefs = Preferences.userRoot().node(MainApp.class.getName());
-
-        /*
-         * String path =
-         * MainApp.class.getProtectionDomain().getCodeSource().getLocation().getPath();
-         * String url = "jdbc:sqlite:" + Paths.get(decodedPath, "TumblrBack.db");
-         */
+        final ExecutorService executor = Executors.newSingleThreadExecutor();
 
         Display display = new Display();
         final Shell shell = new Shell(display);
-        shell.setText("TumblrBack");
+        shell.setText("SaveMyTumblr");
 
         GridLayout gridLayout = new GridLayout();
         gridLayout.numColumns = 2;
@@ -47,11 +46,14 @@ public class MainApp {
         Text txtBlogName = new Text(shell, SWT.SINGLE);
         txtBlogName.setLayoutData(new GridData(GridData.FILL, GridData.FILL, true, false));
 
-        ProgressBar pbDownload = new ProgressBar(shell, SWT.NONE);
+        ProgressBar pbDownload = new ProgressBar(shell, SWT.SMOOTH);
         pbDownload.setLayoutData(new GridData(GridData.FILL, GridData.FILL, true, false, 2, 1));
 
         final Text txtLog = new Text(shell, SWT.MULTI | SWT.BORDER | SWT.WRAP | SWT.READ_ONLY | SWT.V_SCROLL);
         txtLog.setLayoutData(new GridData(GridData.FILL, GridData.FILL, true, true, 2, 1));
+
+        final Text txtTumblrLog = new Text(shell, SWT.MULTI | SWT.BORDER | SWT.WRAP | SWT.READ_ONLY | SWT.V_SCROLL);
+        txtTumblrLog.setLayoutData(new GridData(GridData.FILL, GridData.FILL, true, true, 2, 1));
 
         Button btnLogin = new Button(shell, SWT.PUSH);
         btnLogin.setText("Login");
@@ -59,28 +61,46 @@ public class MainApp {
         btnBackup.setText("Backup");
         btnBackup.setLayoutData(new GridData(GridData.HORIZONTAL_ALIGN_END));
 
-        shell.setSize(500, 200);
+        shell.setSize(500, 500);
         shell.open();
 
         final TumblrClient tc = new TumblrClient(new TumblrClient.Executor() {
             @Override
             public void execute(Runnable runnable) {
-                Display.getDefault().asyncExec(runnable);
+                executor.execute(runnable);
             }
         }, new TumblrClient.Logger() {
             @Override
             public void warning(String msg) {
-                txtLog.append("WARNING: " + msg + "\n");
+                display.asyncExec(new Runnable() {
+                    @Override
+                    public void run() {
+                        txtTumblrLog.append("WARNING: " + msg + "\n");
+                    }
+
+                });
             }
 
             @Override
             public void info(String msg) {
-                txtLog.append("INFO: " + msg + "\n");
+                display.asyncExec(new Runnable() {
+                    @Override
+                    public void run() {
+                        txtTumblrLog.append("INFO: " + msg + "\n");
+                    }
+
+                });
             }
 
             @Override
             public void error(String msg) {
-                txtLog.append("ERROR: " + msg + "\n");
+                display.asyncExec(new Runnable() {
+                    @Override
+                    public void run() {
+                        txtTumblrLog.append("ERROR: " + msg + "\n");
+                    }
+
+                });
             }
         }, new TumblrClient.Storage() {
             @Override
@@ -111,30 +131,51 @@ public class MainApp {
         tc.setOnLoginListener(new TumblrClient.OnLoginListener() {
             @Override
             public void onLoginFailure(BaseException e) {
-                txtLog.append("Login failed\n");
-                System.exit(-1);
+                display.asyncExec(new Runnable() {
+                    @Override
+                    public void run() {
+                        txtLog.append("Login failed\n");
+                        System.exit(-1);
+                    }
+
+                });
             }
 
             @Override
             public void onAccessRequest(Authenticate authenticator, Token requestToken, String authenticationUrl) {
+                display.asyncExec(new Runnable() {
+                    @Override
+                    public void run() {
+                        LoginBrowser lb = new LoginBrowser(shell);
+                        String authVerifier = lb.open(authenticationUrl);
 
-                LoginBrowser lb = new LoginBrowser(shell);
-                String authVerifier = lb.open(authenticationUrl);
+                        authenticator.verify(requestToken, authVerifier);
+                    }
 
-                authenticator.verify(requestToken, authVerifier);
+                });
             }
 
             @Override
             public void onAccessGranted() {
-                loggedIn = true;
-                btnLogin.setText("Logout");
-                txtLog.append("Logged in!\n");
+                display.asyncExec(new Runnable() {
+                    @Override
+                    public void run() {
+                        loggedIn = true;
+                        btnLogin.setText("Logout");
+                        txtLog.append("Logged in!\n");
+                    }
+                });
             }
 
             @Override
             public void onAccessDenied() {
-                txtLog.append("Access denied\n");
-                System.exit(-2);
+                display.asyncExec(new Runnable() {
+                    @Override
+                    public void run() {
+                        txtLog.append("Access denied\n");
+                        System.exit(-2);
+                    }
+                });
             }
         });
 
@@ -153,6 +194,48 @@ public class MainApp {
                     btnLogin.setText("Login");
                 } else {
                     tc.login();
+                }
+            }
+        });
+
+        btnBackup.addSelectionListener(new SelectionListener() {
+
+            @Override
+            public void widgetDefaultSelected(SelectionEvent arg0) {
+            }
+
+            @Override
+            public void widgetSelected(SelectionEvent arg0) {
+                if ((backup != null) && backup.isRunning()) {
+                    backup.stop();
+                    btnBackup.setText("Backup");
+                } else {
+                    Path mainPath = Paths
+                            .get(MainApp.class.getProtectionDomain().getCodeSource().getLocation().getPath());
+                    backup = new Backup(mainPath, tc, txtBlogName.getText(), new Backup.Progress() {
+                        @Override
+                        public void progress(int current, int total) {
+                            display.asyncExec(new Runnable() {
+                                @Override
+                                public void run() {
+                                    pbDownload.setMaximum(total);
+                                    pbDownload.setSelection(current);
+                                }
+                            });
+                        }
+
+                        @Override
+                        public void log(String msg) {
+                            display.asyncExec(new Runnable() {
+                                @Override
+                                public void run() {
+                                    txtLog.append(msg + "\n");
+                                }
+                            });
+                        }
+                    });
+                    backup.start();
+                    btnBackup.setText("Stop backup");
                 }
             }
         });

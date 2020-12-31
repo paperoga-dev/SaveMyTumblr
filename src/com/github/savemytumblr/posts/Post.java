@@ -18,20 +18,20 @@
 
 package com.github.savemytumblr.posts;
 
-import com.github.savemytumblr.api.array.ContentInterface;
-import com.github.savemytumblr.blog.simple.Info;
-import com.github.savemytumblr.posts.layout.Ask;
-import com.github.savemytumblr.posts.layout.Rows;
-
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
-
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.SortedSet;
 import java.util.TreeSet;
+
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import com.github.savemytumblr.api.array.ContentInterface;
+import com.github.savemytumblr.blog.simple.Info;
+import com.github.savemytumblr.posts.layout.Ask;
+import com.github.savemytumblr.posts.layout.Rows;
 
 public interface Post {
 
@@ -62,8 +62,10 @@ public interface Post {
         private List<Trail> trail;
         private String askingName;
         private String askingUrl;
+        private boolean isPinned;
 
-        public Trail(JSONObject postObject, String brokenBlogName) throws JSONException, com.github.savemytumblr.exception.RuntimeException {
+        public Trail(JSONObject postObject, String brokenBlogName)
+                throws JSONException, com.github.savemytumblr.exception.RuntimeException {
             super();
 
             this.blog = new Info.Base(brokenBlogName);
@@ -71,7 +73,8 @@ public interface Post {
             loadContent(postObject);
         }
 
-        public Trail(JSONObject postObject, JSONObject idObject) throws JSONException, com.github.savemytumblr.exception.RuntimeException {
+        public Trail(JSONObject postObject, JSONObject idObject)
+                throws JSONException, com.github.savemytumblr.exception.RuntimeException {
             super(idObject);
 
             this.blog = new Info.Base(postObject.getJSONObject("blog"));
@@ -79,7 +82,8 @@ public interface Post {
             loadContent(postObject);
         }
 
-        private void loadContent(JSONObject postObject) throws JSONException, com.github.savemytumblr.exception.RuntimeException {
+        private void loadContent(JSONObject postObject)
+                throws JSONException, com.github.savemytumblr.exception.RuntimeException {
             this.content = new ArrayList<>();
             JSONArray content = postObject.getJSONArray("content");
             for (int i = 0; i < content.length(); ++i) {
@@ -100,25 +104,16 @@ public interface Post {
                 for (int i = 0; i < trail.length(); ++i) {
                     String brokenBlogName = trail.getJSONObject(i).optString("broken_blog_name", null);
                     if (brokenBlogName != null) {
-                        this.trail.add(
-                                new Trail(
-                                        trail.getJSONObject(i),
-                                        brokenBlogName
-                                )
-                        );
+                        this.trail.add(new Trail(trail.getJSONObject(i), brokenBlogName));
                     } else {
-                        this.trail.add(
-                                new Trail(
-                                        trail.getJSONObject(i),
-                                        trail.getJSONObject(i).getJSONObject("post")
-                                )
-                        );
+                        this.trail.add(new Trail(trail.getJSONObject(i), trail.getJSONObject(i).getJSONObject("post")));
                     }
                 }
             }
 
             this.askingName = postObject.optString("asking_name");
             this.askingUrl = postObject.optString("asking_url");
+            this.isPinned = postObject.optBoolean("is_pinned", false);
         }
 
         public Info.Base getBlog() {
@@ -143,6 +138,10 @@ public interface Post {
 
         public String getAskingUrl() {
             return askingUrl;
+        }
+
+        public boolean isPinned() {
+            return isPinned;
         }
 
         public List<List<Integer>> getBlocksLayout() {
@@ -224,9 +223,9 @@ public interface Post {
         public String getShortUrl() {
             return shortUrl;
         }
-        
-        public String getJSON() { 
-        	return json;
+
+        public String getJSON() {
+            return json;
         }
     }
 
