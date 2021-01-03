@@ -194,7 +194,7 @@ public interface Post {
         public Item(JSONObject postObject) throws JSONException, com.github.savemytumblr.exception.RuntimeException {
             super(postObject, postObject);
 
-            json = postObject.toString();
+            json = postObject.toString(2);
             this.timestamp = new Date(postObject.getLong("timestamp") * 1000L);
             this.url = postObject.getString("post_url");
             this.shortUrl = postObject.getString("short_url");

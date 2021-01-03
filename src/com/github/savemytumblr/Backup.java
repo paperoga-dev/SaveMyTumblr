@@ -27,8 +27,6 @@ import com.github.savemytumblr.blog.simple.Info;
 import com.github.savemytumblr.exception.BaseException;
 import com.github.savemytumblr.posts.ContentItem;
 import com.github.savemytumblr.posts.Post;
-import com.github.savemytumblr.posts.media.Base;
-import com.github.savemytumblr.posts.media.Media;
 
 public class Backup {
     public interface Progress {
@@ -194,46 +192,78 @@ public class Backup {
             writer.close();
 
             for (ContentItem ci : item.getContent()) {
-                if (ci instanceof Base) {
-                    Base mediaContent = (Base) ci;
+                String sUrl = null;
+                String req = null;
 
-                    int maxWidth = 0;
-                    String sUrl = null;
+                if (ci instanceof com.github.savemytumblr.posts.media.Base) {
+                    com.github.savemytumblr.posts.media.Base mediaContent = (com.github.savemytumblr.posts.media.Base) ci;
 
-                    for (Media m : mediaContent.getMedia()) {
-                        if (m.getWidth() > maxWidth) {
-                            maxWidth = m.getWidth();
-                            sUrl = m.getUrl();
+                    List<com.github.savemytumblr.posts.media.Media> mediaList = mediaContent.getMedia();
+
+                    if (!mediaList.isEmpty()) {
+                        int maxWidth = mediaList.get(0).getWidth();
+                        sUrl = mediaList.get(0).getUrl();
+
+                        for (int i = 1; i < mediaList.size(); ++i) {
+                            com.github.savemytumblr.posts.media.Media mediaItem = mediaList.get(i);
+
+                            if (mediaItem.getWidth() > maxWidth) {
+                                maxWidth = mediaItem.getWidth();
+                                sUrl = mediaItem.getUrl();
+                            }
                         }
+
+                        req = "image/*";
+                    }
+                } else if (ci instanceof com.github.savemytumblr.posts.video.Base) {
+                    com.github.savemytumblr.posts.video.Base mediaContent = (com.github.savemytumblr.posts.video.Base) ci;
+
+                    if (mediaContent.getMedia() != null) {
+                        sUrl = mediaContent.getMedia().getUrl();
+                        req = "video/*";
                     }
 
-                    Path mediaPath = postPath.resolve(String.valueOf(item.getId()));
-                    Files.createDirectories(mediaPath);
+                } else if (ci instanceof com.github.savemytumblr.posts.audio.Base) {
+                    com.github.savemytumblr.posts.audio.Base mediaContent = (com.github.savemytumblr.posts.audio.Base) ci;
 
-                    try {
-                        Path fPath = mediaPath.resolve(Paths.get(new URI(sUrl).getPath()).getFileName());
-
-                        URL url = new URL(sUrl);
-
-                        progress.log("=> Save media " + sUrl);
-
-                        HttpsURLConnection httpConn = (HttpsURLConnection) url.openConnection();
-                        httpConn.addRequestProperty("User-Agent",
-                                "Mozilla/5.0 (Windows NT 6.1; Win64; x64; rv:56.0) Gecko/20100101 Firefox/56.0");
-                        httpConn.addRequestProperty("Accept", "image/*, video/*, audio/*");
-                        int responseCode = httpConn.getResponseCode();
-
-                        if (responseCode == HttpsURLConnection.HTTP_OK) {
-                            InputStream inputStream = httpConn.getInputStream();
-                            Files.copy(inputStream, fPath, StandardCopyOption.REPLACE_EXISTING);
-                            inputStream.close();
-                        }
-                    } catch (URISyntaxException e) {
-
+                    if (mediaContent.getMedia() != null) {
+                        sUrl = mediaContent.getMedia().getUrl();
+                        req = "audio/*";
                     }
                 }
+
+                if (sUrl == null) {
+                    continue;
+                }
+
+                Path mediaPath = postPath.resolve(String.valueOf(item.getId()));
+                Files.createDirectories(mediaPath);
+
+                try {
+                    Path fPath = mediaPath.resolve(Paths.get(new URI(sUrl).getPath()).getFileName());
+
+                    URL url = new URL(sUrl);
+
+                    progress.log("=> Save media " + sUrl);
+
+                    HttpsURLConnection httpConn = (HttpsURLConnection) url.openConnection();
+                    httpConn.addRequestProperty("User-Agent",
+                            "Mozilla/5.0 (Windows NT 6.1; Win64; x64; rv:56.0) Gecko/20100101 Firefox/56.0");
+                    httpConn.addRequestProperty("Accept", req);
+                    int responseCode = httpConn.getResponseCode();
+
+                    if (responseCode == HttpsURLConnection.HTTP_OK) {
+                        InputStream inputStream = httpConn.getInputStream();
+                        Files.copy(inputStream, fPath, StandardCopyOption.REPLACE_EXISTING);
+                        inputStream.close();
+                    }
+                } catch (URISyntaxException e) {
+
+                }
             }
-        } catch (IOException e) {
+        } catch (
+
+        IOException e) {
 
         }
 
@@ -274,9 +304,11 @@ public class Backup {
 
                                 boolean headFound = false;
                                 boolean emptyBackup = backupState.getStart().isNull();
+                                int pinnedItems = 0;
 
                                 for (Post.Item item : result) {
                                     if (item.isPinned()) {
+                                        ++pinnedItems;
                                         continue;
                                     }
 
@@ -320,7 +352,8 @@ public class Backup {
                                         updateState(blogFirstPost, null, savedFromHead);
                                     }
 
-                                    currentOffset = (emptyBackup) ? result.size() : backupState.getEnd().getIndex();
+                                    currentOffset = (emptyBackup) ? (result.size() - pinnedItems)
+                                            : backupState.getEnd().getIndex();
                                     downloadTail();
                                 }
                             }
