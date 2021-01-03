@@ -29,11 +29,11 @@ public class MainApp {
     private static Backup backup = null;
 
     public static void main(String[] args) {
-        final Preferences prefs = Preferences.userRoot().node(MainApp.class.getName());
-        final ExecutorService executor = Executors.newSingleThreadExecutor();
+        Preferences prefs = Preferences.userRoot().node(MainApp.class.getName());
+        ExecutorService executor = Executors.newSingleThreadExecutor();
 
         Display display = new Display();
-        final Shell shell = new Shell(display);
+        Shell shell = new Shell(display);
         shell.setText("SaveMyTumblr");
 
         GridLayout gridLayout = new GridLayout();
@@ -49,10 +49,10 @@ public class MainApp {
         ProgressBar pbDownload = new ProgressBar(shell, SWT.SMOOTH);
         pbDownload.setLayoutData(new GridData(GridData.FILL, GridData.FILL, true, false, 2, 1));
 
-        final Text txtLog = new Text(shell, SWT.MULTI | SWT.BORDER | SWT.WRAP | SWT.READ_ONLY | SWT.V_SCROLL);
+        Text txtLog = new Text(shell, SWT.MULTI | SWT.BORDER | SWT.WRAP | SWT.READ_ONLY | SWT.V_SCROLL);
         txtLog.setLayoutData(new GridData(GridData.FILL, GridData.FILL, true, true, 2, 1));
 
-        final Text txtTumblrLog = new Text(shell, SWT.MULTI | SWT.BORDER | SWT.WRAP | SWT.READ_ONLY | SWT.V_SCROLL);
+        Text txtTumblrLog = new Text(shell, SWT.MULTI | SWT.BORDER | SWT.WRAP | SWT.READ_ONLY | SWT.V_SCROLL);
         txtTumblrLog.setLayoutData(new GridData(GridData.FILL, GridData.FILL, true, true, 2, 1));
 
         Button btnLogin = new Button(shell, SWT.PUSH);
@@ -64,7 +64,7 @@ public class MainApp {
         shell.setSize(500, 500);
         shell.open();
 
-        final TumblrClient tc = new TumblrClient(new TumblrClient.Executor() {
+        TumblrClient tc = new TumblrClient(new TumblrClient.Executor() {
             @Override
             public void execute(Runnable runnable) {
                 executor.execute(runnable);
@@ -77,7 +77,6 @@ public class MainApp {
                     public void run() {
                         txtTumblrLog.append("WARNING: " + msg + "\n");
                     }
-
                 });
             }
 
@@ -88,7 +87,6 @@ public class MainApp {
                     public void run() {
                         txtTumblrLog.append("INFO: " + msg + "\n");
                     }
-
                 });
             }
 
@@ -99,7 +97,6 @@ public class MainApp {
                     public void run() {
                         txtTumblrLog.append("ERROR: " + msg + "\n");
                     }
-
                 });
             }
         }, new TumblrClient.Storage() {
@@ -137,7 +134,6 @@ public class MainApp {
                         txtLog.append("Login failed\n");
                         System.exit(-1);
                     }
-
                 });
             }
 
@@ -151,7 +147,6 @@ public class MainApp {
 
                         authenticator.verify(requestToken, authVerifier);
                     }
-
                 });
             }
 
@@ -233,7 +228,18 @@ public class MainApp {
                                 }
                             });
                         }
+
+                        @Override
+                        public void onCompleted(boolean ok) {
+                            display.asyncExec(new Runnable() {
+                                @Override
+                                public void run() {
+                                    btnBackup.setText("Backup");
+                                }
+                            });
+                        }
                     });
+
                     backup.start();
                     btnBackup.setText("Stop backup");
                 }
@@ -246,6 +252,8 @@ public class MainApp {
             if (!display.readAndDispatch())
                 display.sleep();
         }
+
+        executor.shutdown();
 
         display.dispose();
     }
