@@ -49,10 +49,10 @@ public class MainApp {
         ProgressBar pbDownload = new ProgressBar(shell, SWT.SMOOTH);
         pbDownload.setLayoutData(new GridData(GridData.FILL, GridData.FILL, true, false, 2, 1));
 
-        Text txtLog = new Text(shell, SWT.MULTI | SWT.BORDER | SWT.WRAP | SWT.READ_ONLY | SWT.V_SCROLL);
+        LogText txtLog = new LogText(shell);
         txtLog.setLayoutData(new GridData(GridData.FILL, GridData.FILL, true, true, 2, 1));
 
-        Text txtTumblrLog = new Text(shell, SWT.MULTI | SWT.BORDER | SWT.WRAP | SWT.READ_ONLY | SWT.V_SCROLL);
+        LogText txtTumblrLog = new LogText(shell);
         txtTumblrLog.setLayoutData(new GridData(GridData.FILL, GridData.FILL, true, true, 2, 1));
 
         Button btnLogin = new Button(shell, SWT.PUSH);
@@ -75,7 +75,7 @@ public class MainApp {
                 display.asyncExec(new Runnable() {
                     @Override
                     public void run() {
-                        txtTumblrLog.append("WARNING: " + msg + "\n");
+                        txtTumblrLog.appendLine("WARNING: " + msg);
                     }
                 });
             }
@@ -85,7 +85,7 @@ public class MainApp {
                 display.asyncExec(new Runnable() {
                     @Override
                     public void run() {
-                        txtTumblrLog.append("INFO: " + msg + "\n");
+                        txtTumblrLog.appendLine("INFO: " + msg);
                     }
                 });
             }
@@ -95,7 +95,7 @@ public class MainApp {
                 display.asyncExec(new Runnable() {
                     @Override
                     public void run() {
-                        txtTumblrLog.append("ERROR: " + msg + "\n");
+                        txtTumblrLog.appendLine("ERROR: " + msg);
                     }
                 });
             }
@@ -131,7 +131,7 @@ public class MainApp {
                 display.asyncExec(new Runnable() {
                     @Override
                     public void run() {
-                        txtLog.append("Login failed\n");
+                        txtLog.appendLine("Login failed");
                         System.exit(-1);
                     }
                 });
@@ -157,7 +157,7 @@ public class MainApp {
                     public void run() {
                         loggedIn = true;
                         btnLogin.setText("Logout");
-                        txtLog.append("Logged in!\n");
+                        txtLog.appendLine("Logged in!");
                     }
                 });
             }
@@ -167,7 +167,7 @@ public class MainApp {
                 display.asyncExec(new Runnable() {
                     @Override
                     public void run() {
-                        txtLog.append("Access denied\n");
+                        txtLog.appendLine("Access denied");
                         System.exit(-2);
                     }
                 });
@@ -185,7 +185,7 @@ public class MainApp {
                 if (loggedIn) {
                     tc.logout();
                     loggedIn = false;
-                    txtLog.append("Logged out\n");
+                    txtLog.appendLine("Logged out");
                     btnLogin.setText("Login");
                 } else {
                     tc.login();
@@ -224,7 +224,7 @@ public class MainApp {
                             display.asyncExec(new Runnable() {
                                 @Override
                                 public void run() {
-                                    txtLog.append(msg + "\n");
+                                    txtLog.appendLine(msg);
                                 }
                             });
                         }
