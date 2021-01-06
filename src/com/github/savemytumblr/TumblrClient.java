@@ -92,8 +92,8 @@ public final class TumblrClient {
         this.storage = storage;
 
         authToken = null;
-        oAuthService = new ServiceBuilder().provider(OAuthApi.class).apiKey(Constants.CONSUMER_KEY)
-                .apiSecret(Constants.CONSUMER_SECRET).build();
+        oAuthService = new ServiceBuilder().provider(OAuthApi.class).apiKey(Secrets.CONSUMER_KEY)
+                .apiSecret(Secrets.CONSUMER_SECRET).build();
         onLoginListener = null;
 
         this.me = null;

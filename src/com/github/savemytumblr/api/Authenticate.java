@@ -18,10 +18,6 @@
 
 package com.github.savemytumblr.api;
 
-import com.github.savemytumblr.Constants;
-import com.github.savemytumblr.TumblrClient.Executor;
-import com.github.savemytumblr.TumblrClient.Logger;
-
 import java.io.IOException;
 import java.io.OutputStream;
 
@@ -31,30 +27,29 @@ import org.scribe.model.Token;
 import org.scribe.model.Verifier;
 import org.scribe.oauth.OAuthService;
 
+import com.github.savemytumblr.Constants;
+import com.github.savemytumblr.Secrets;
+import com.github.savemytumblr.TumblrClient.Executor;
+import com.github.savemytumblr.TumblrClient.Logger;
+
 public class Authenticate {
 
     public interface OnAuthenticationListener {
-        void onAuthenticationRequest(
-                Authenticate authenticator,
-                Token requestToken,
-                String authenticationUrl
-        );
+        void onAuthenticationRequest(Authenticate authenticator, Token requestToken, String authenticationUrl);
+
         void onAuthenticationGranted(Token accessToken);
+
         void onFailure(OAuthException exception);
     }
 
     private static class RequestTokenTask implements Runnable {
-    	private final Executor executor;
-    	private final Logger logger;
+        private final Executor executor;
+        private final Logger logger;
         private final Authenticate authenticator;
         private final OAuthService oAuthService;
         private final OnAuthenticationListener onAuthenticationListener;
 
-        RequestTokenTask(
-        		Executor executor,
-        		Logger logger,
-                Authenticate authenticator,
-                OAuthService oAuthService,
+        RequestTokenTask(Executor executor, Logger logger, Authenticate authenticator, OAuthService oAuthService,
                 OnAuthenticationListener onAuthenticationListener) {
             super();
 
@@ -80,16 +75,13 @@ public class Authenticate {
                 executor.execute(new Runnable() {
                     @Override
                     public void run() {
-                        onAuthenticationListener.onAuthenticationRequest(
-                                authenticator,
-                                requestToken,
-                                authenticationUrl
-                        );
+                        onAuthenticationListener.onAuthenticationRequest(authenticator, requestToken,
+                                authenticationUrl);
                     }
                 });
 
             } catch (final OAuthException e) {
-            	executor.execute(new Runnable() {
+                executor.execute(new Runnable() {
                     @Override
                     public void run() {
                         onAuthenticationListener.onFailure(e);
@@ -100,20 +92,15 @@ public class Authenticate {
     }
 
     private static class AccessTokenTask implements Runnable {
-    	private final Executor executor;
-    	private final Logger logger;
+        private final Executor executor;
+        private final Logger logger;
         private final String authVerifier;
         private final Token requestToken;
         private final OAuthService oAuthService;
         private final OnAuthenticationListener onAuthenticationListener;
 
-        AccessTokenTask(
-        		Executor executor,
-        		Logger logger,
-                String authVerifier,
-                Token requestToken,
-                OAuthService oAuthService,
-                OnAuthenticationListener onAuthenticationListener) {
+        AccessTokenTask(Executor executor, Logger logger, String authVerifier, Token requestToken,
+                OAuthService oAuthService, OnAuthenticationListener onAuthenticationListener) {
             super();
 
             this.executor = executor;
@@ -141,7 +128,7 @@ public class Authenticate {
                 });
 
             } catch (final OAuthException e) {
-            	executor.execute(new Runnable() {
+                executor.execute(new Runnable() {
                     @Override
                     public void run() {
                         onAuthenticationListener.onFailure(e);
@@ -171,7 +158,7 @@ public class Authenticate {
         }
 
         @Override
-        public void flush () {
+        public void flush() {
             logger.info(mem);
             mem = "";
         }
@@ -187,12 +174,8 @@ public class Authenticate {
 
         this.executor = executor;
         this.logger = logger;
-        this.oAuthService = new ServiceBuilder()
-                .apiKey(Constants.CONSUMER_KEY)
-                .apiSecret(Constants.CONSUMER_SECRET)
-                .provider(OAuthApi.class)
-                .callback(Constants.CALLBACK_URL)
-                .debugStream(new LogOutputStream(logger))
+        this.oAuthService = new ServiceBuilder().apiKey(Secrets.CONSUMER_KEY).apiSecret(Secrets.CONSUMER_SECRET)
+                .provider(OAuthApi.class).callback(Constants.CALLBACK_URL).debugStream(new LogOutputStream(logger))
                 .build();
         this.onAuthenticationListener = null;
     }
@@ -205,18 +188,11 @@ public class Authenticate {
     }
 
     public void verify(Token requestToken, String authVerifier) {
-    	logger.info("Verify: requestToken = " + requestToken.toString());
-    	logger.info("Verify: authVerifier = " + authVerifier);
+        logger.info("Verify: requestToken = " + requestToken.toString());
+        logger.info("Verify: authVerifier = " + authVerifier);
 
-        executor.execute(
-            new AccessTokenTask(
-            		executor,
-            		logger,
-                    authVerifier,
-                    requestToken,
-                    oAuthService,
-                    onAuthenticationListener)
-        );
+        executor.execute(new AccessTokenTask(executor, logger, authVerifier, requestToken, oAuthService,
+                onAuthenticationListener));
     }
 
     public void setOnAuthenticationListener(OnAuthenticationListener onAuthenticationListener) {

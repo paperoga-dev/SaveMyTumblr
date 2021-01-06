@@ -18,6 +18,9 @@
 
 package com.github.savemytumblr.api;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.scribe.model.OAuthRequest;
@@ -26,9 +29,7 @@ import org.scribe.model.Verb;
 import org.scribe.oauth.OAuthService;
 
 import com.github.savemytumblr.Constants;
-
-import java.util.HashMap;
-import java.util.Map;
+import com.github.savemytumblr.Secrets;
 
 public abstract class Api<T> {
 
@@ -37,11 +38,7 @@ public abstract class Api<T> {
     private final String appId;
     private final String appVersion;
 
-    protected Api(
-            OAuthService service,
-            Token authToken,
-            String appId,
-            String appVersion) {
+    protected Api(OAuthService service, Token authToken, String appId, String appVersion) {
         super();
 
         this.service = service;
@@ -60,12 +57,13 @@ public abstract class Api<T> {
         Map<String, String> m = new HashMap<>();
 
         if (requiresApiKey())
-            m.put("api_key", Constants.CONSUMER_KEY);
+            m.put("api_key", Secrets.CONSUMER_KEY);
 
         return m;
     }
 
-    protected abstract T readData(JSONObject jsonObject) throws JSONException, com.github.savemytumblr.exception.RuntimeException;
+    protected abstract T readData(JSONObject jsonObject)
+            throws JSONException, com.github.savemytumblr.exception.RuntimeException;
 
     protected OAuthRequest setupCall(Map<String, ?> queryParams) {
         OAuthRequest request = new OAuthRequest(Verb.GET, Constants.API_ENDPOINT + getPath());
