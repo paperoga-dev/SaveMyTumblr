@@ -18,11 +18,16 @@
 
 package com.github.savemytumblr.posts.audio;
 
-import com.github.savemytumblr.posts.ContentItem;
-import com.github.savemytumblr.posts.media.Media;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 
 import org.json.JSONException;
 import org.json.JSONObject;
+
+import com.github.savemytumblr.posts.ContentItem;
+import com.github.savemytumblr.posts.media.Media;
 
 public class Base extends ContentItem {
     private final String url;
@@ -51,7 +56,8 @@ public class Base extends ContentItem {
         this.poster = allocateOrNothing(Media.class, audioObject, "poster");
         this.embedHtml = audioObject.optString("embed_html", "");
         this.embedUrl = audioObject.optString("embed_url", "");
-        this.attribution = com.github.savemytumblr.posts.attribution.Base.doCreate(audioObject.optJSONObject("attribution"));
+        this.attribution = com.github.savemytumblr.posts.attribution.Base
+                .doCreate(audioObject.optJSONObject("attribution"));
     }
 
     public String getUrl() {
@@ -94,7 +100,25 @@ public class Base extends ContentItem {
         return attribution;
     }
 
-    public static ContentItem doCreate(JSONObject audioObject) throws JSONException, com.github.savemytumblr.exception.RuntimeException {
+    public static ContentItem doCreate(JSONObject audioObject)
+            throws JSONException, com.github.savemytumblr.exception.RuntimeException {
         return new Base(audioObject);
+    }
+
+    @Override
+    public String toHTML(String newRoot) {
+        try {
+            Path audioPath = Paths.get(newRoot, Paths.get(new URI(getUrl()).getPath()).getFileName().toString());
+            if (audioPath.toFile().exists()) {
+                return "<audio controls><source src=\"" + audioPath
+                        + "\">Your browser does not support the audio tag.</audio>";
+            } else if (!getEmbedHtml().isEmpty()) {
+                return getEmbedHtml();
+            } else {
+                return "<a href=\"" + getUrl() + "\" target=\"_blank\">Audio link</a>";
+            }
+        } catch (URISyntaxException e) {
+            return "dead_link";
+        }
     }
 }

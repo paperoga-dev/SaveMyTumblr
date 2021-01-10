@@ -25,4 +25,9 @@ public class Heading2 extends Base {
     public Heading2(JSONObject textObject) throws JSONException, com.github.savemytumblr.exception.RuntimeException {
         super(textObject);
     }
+
+    @Override
+    public String toHTML(String newRoot) {
+        return "<h2>" + getFormattedText() + "</h2>";
+    }
 }

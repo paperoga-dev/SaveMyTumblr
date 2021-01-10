@@ -39,4 +39,8 @@ public abstract class Base {
     public int getEnd() {
         return end;
     }
+
+    public abstract String getStartHTMLTag();
+
+    public abstract String getEndHTMLTag();
 }

@@ -24,9 +24,19 @@ import org.json.JSONObject;
 public class OrderedListItem extends Base {
     private int orderNumber;
 
-    public OrderedListItem(JSONObject textObject) throws JSONException, com.github.savemytumblr.exception.RuntimeException {
+    public OrderedListItem(JSONObject textObject)
+            throws JSONException, com.github.savemytumblr.exception.RuntimeException {
         super(textObject);
 
         this.orderNumber = Base.getOrderedListCounter();
+    }
+
+    public int getOrderNumber() {
+        return orderNumber;
+    }
+
+    @Override
+    public String toHTML(String newRoot) {
+        return "<li>" + getFormattedText() + "</li>";
     }
 }

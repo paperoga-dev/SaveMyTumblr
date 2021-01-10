@@ -98,7 +98,7 @@ public final class TumblrClient {
 
         this.me = null;
 
-        this.appName = "TumblrBack";
+        this.appName = Constants.APP_NAME;
         this.appVersion = "0.0.1";
     }
 

@@ -18,11 +18,16 @@
 
 package com.github.savemytumblr.posts.video;
 
-import com.github.savemytumblr.posts.ContentItem;
-import com.github.savemytumblr.posts.media.Media;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 
 import org.json.JSONException;
 import org.json.JSONObject;
+
+import com.github.savemytumblr.posts.ContentItem;
+import com.github.savemytumblr.posts.media.Media;
 
 public class Base extends ContentItem {
     private final String url;
@@ -48,7 +53,8 @@ public class Base extends ContentItem {
         this.embedIframe = allocateOrNothing(EmbedIframe.class, videoObject, "embed_iframe");
         this.embedUrl = videoObject.optString("embed_url", "");
         this.poster = allocateOrNothing(Media.class, videoObject, "poster");
-        this.attribution = com.github.savemytumblr.posts.attribution.Base.doCreate(videoObject.optJSONObject("attribution"));
+        this.attribution = com.github.savemytumblr.posts.attribution.Base
+                .doCreate(videoObject.optJSONObject("attribution"));
     }
 
     public String getUrl() {
@@ -87,7 +93,25 @@ public class Base extends ContentItem {
         return canAutoPlayOnCellular;
     }
 
-    public static ContentItem doCreate(JSONObject videoObject) throws JSONException, com.github.savemytumblr.exception.RuntimeException {
+    public static ContentItem doCreate(JSONObject videoObject)
+            throws JSONException, com.github.savemytumblr.exception.RuntimeException {
         return new Base(videoObject);
+    }
+
+    @Override
+    public String toHTML(String newRoot) {
+        try {
+            Path videoPath = Paths.get(newRoot, Paths.get(new URI(getUrl()).getPath()).getFileName().toString());
+            if (videoPath.toFile().exists()) {
+                return "<video controls><source src=\"" + videoPath
+                        + "\">Your browser does not support the video tag.</video>";
+            } else if (!getEmbedHtml().isEmpty()) {
+                return getEmbedHtml();
+            } else {
+                return "<a href=\"" + getUrl() + "\" target=\"_blank\">Video link</a>";
+            }
+        } catch (URISyntaxException e) {
+            return "dead_link";
+        }
     }
 }

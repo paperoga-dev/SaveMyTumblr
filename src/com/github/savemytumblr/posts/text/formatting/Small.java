@@ -25,4 +25,14 @@ public class Small extends Base {
     public Small(JSONObject formattingObject) throws JSONException {
         super(formattingObject);
     }
+
+    @Override
+    public String getStartHTMLTag() {
+        return "<small>";
+    }
+
+    @Override
+    public String getEndHTMLTag() {
+        return "</small>";
+    }
 }

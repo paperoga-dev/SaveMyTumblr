@@ -27,6 +27,7 @@ import com.github.savemytumblr.blog.simple.Info;
 import com.github.savemytumblr.exception.BaseException;
 import com.github.savemytumblr.posts.ContentItem;
 import com.github.savemytumblr.posts.Post;
+import com.github.savemytumblr.posts.Post.Trail;
 
 public class Backup {
     public interface Progress {
@@ -168,21 +169,7 @@ public class Backup {
         }
     }
 
-    private void savePost(Post.Item item) throws URISyntaxException, IOException {
-        LocalDate lDate = item.getTimestamp().toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
-
-        Path postPath = blogPath.resolve(String.valueOf(lDate.getYear()))
-                .resolve(String.format("%02d", lDate.getMonthValue()))
-                .resolve(String.format("%02d", lDate.getDayOfMonth()));
-        Files.createDirectories(postPath);
-
-        progress.log("Save post " + String.valueOf(item.getId()));
-
-        BufferedWriter writer = Files.newBufferedWriter(postPath.resolve(String.valueOf(item.getId()) + ".json"),
-                StandardCharsets.UTF_8);
-        writer.write(item.getJSON());
-        writer.close();
-
+    private void saveMedia(Path mediaPath, Post.Trail item) throws URISyntaxException, IOException {
         for (ContentItem ci : item.getContent()) {
             String sUrl = null;
             String req = null;
@@ -228,9 +215,6 @@ public class Backup {
                 continue;
             }
 
-            Path mediaPath = postPath.resolve(String.valueOf(item.getId()));
-            Files.createDirectories(mediaPath);
-
             Path fPath = mediaPath.resolve(Paths.get(new URI(sUrl).getPath()).getFileName());
 
             URL url = new URL(sUrl);
@@ -249,6 +233,31 @@ public class Backup {
                 inputStream.close();
             }
         }
+
+        for (Trail trail : item.getTrail()) {
+            saveMedia(mediaPath, trail);
+        }
+    }
+
+    private void savePost(Post.Item item) throws URISyntaxException, IOException {
+        LocalDate lDate = item.getTimestamp().toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
+
+        Path postPath = blogPath.resolve(String.valueOf(lDate.getYear()))
+                .resolve(String.format("%02d", lDate.getMonthValue()))
+                .resolve(String.format("%02d", lDate.getDayOfMonth()));
+        Files.createDirectories(postPath);
+
+        progress.log("Save post " + String.valueOf(item.getId()));
+
+        BufferedWriter writer = Files.newBufferedWriter(postPath.resolve(String.valueOf(item.getId()) + ".json"),
+                StandardCharsets.UTF_8);
+        writer.write(item.getJSON());
+        writer.close();
+
+        Path mediaPath = postPath.resolve(String.valueOf(item.getId()));
+        Files.createDirectories(mediaPath);
+
+        saveMedia(mediaPath, item);
 
         progress.log("");
     }

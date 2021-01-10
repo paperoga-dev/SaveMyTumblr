@@ -25,4 +25,9 @@ public class Quote extends Base {
     public Quote(JSONObject textObject) throws JSONException, com.github.savemytumblr.exception.RuntimeException {
         super(textObject);
     }
+
+    @Override
+    public String toHTML(String newRoot) {
+        return "<h1><div style=\"font-family: 'Times New Roman', serif;\">" + getFormattedText() + "</div></h1>";
+    }
 }

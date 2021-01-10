@@ -18,25 +18,25 @@
 
 package com.github.savemytumblr.posts.attribution;
 
-import org.json.JSONException;
-import org.json.JSONObject;
-
 import java.lang.reflect.InvocationTargetException;
 import java.util.HashMap;
 import java.util.Map;
 
-public abstract class Base {
+import org.json.JSONException;
+import org.json.JSONObject;
+
+public class Base {
     private String url;
 
-    private static final Map<String, Class<? extends Base>> typesMap =
-            new HashMap<String, Class<? extends Base>>() {
-				private static final long serialVersionUID = 1L;
-			{
-                put("link", com.github.savemytumblr.posts.attribution.Link.class);
-                put("blog", com.github.savemytumblr.posts.attribution.Blog.class);
-                put("post", com.github.savemytumblr.posts.attribution.Post.class);
-                put("app", com.github.savemytumblr.posts.attribution.App.class);
-            }};
+    private static final Map<String, Class<? extends Base>> typesMap = new HashMap<String, Class<? extends Base>>() {
+        private static final long serialVersionUID = 1L;
+        {
+            put("link", com.github.savemytumblr.posts.attribution.Link.class);
+            put("blog", com.github.savemytumblr.posts.attribution.Blog.class);
+            put("post", com.github.savemytumblr.posts.attribution.Post.class);
+            put("app", com.github.savemytumblr.posts.attribution.App.class);
+        }
+    };
 
     public Base(JSONObject attributionObject) throws JSONException {
         super();
@@ -48,19 +48,18 @@ public abstract class Base {
         return url;
     }
 
-    public static Base doCreate(JSONObject attributionObject) throws JSONException, com.github.savemytumblr.exception.RuntimeException {
+    public static Base doCreate(JSONObject attributionObject)
+            throws JSONException, com.github.savemytumblr.exception.RuntimeException {
         if (attributionObject == null)
             return null;
 
         String attributionType = attributionObject.getString("type");
         try {
-            return (Base) typesMap.get(attributionType)
-                    .getMethod("doCreate", JSONObject.class)
-                    .invoke(null, attributionObject);
-        } catch (InvocationTargetException |
-                NoSuchMethodException |
-                IllegalAccessException e) {
-            throw new com.github.savemytumblr.exception.RuntimeException("Add missing attribution type: " + attributionType);
+            return (Base) typesMap.get(attributionType).getMethod("doCreate", JSONObject.class).invoke(null,
+                    attributionObject);
+        } catch (InvocationTargetException | NoSuchMethodException | IllegalAccessException e) {
+            throw new com.github.savemytumblr.exception.RuntimeException(
+                    "Add missing attribution type: " + attributionType);
         }
     }
 }

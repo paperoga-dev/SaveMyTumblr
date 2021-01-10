@@ -33,4 +33,14 @@ public class Link extends Base {
     public String getUrl() {
         return url;
     }
+
+    @Override
+    public String getStartHTMLTag() {
+        return "<a href=\"" + getUrl() + "\" target=\"_blank\">";
+    }
+
+    @Override
+    public String getEndHTMLTag() {
+        return "</a>";
+    }
 }

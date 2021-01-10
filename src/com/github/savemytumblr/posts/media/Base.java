@@ -18,15 +18,18 @@
 
 package com.github.savemytumblr.posts.media;
 
-import com.github.savemytumblr.posts.ContentItem;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
 
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
+import com.github.savemytumblr.posts.ContentItem;
 
 public class Base extends ContentItem {
     private List<Media> media;
@@ -54,7 +57,8 @@ public class Base extends ContentItem {
         }
 
         this.feedbackToken = mediaObject.optString("feedback_token", "");
-        this.attribution = com.github.savemytumblr.posts.attribution.Base.doCreate(mediaObject.optJSONObject("attribution"));
+        this.attribution = com.github.savemytumblr.posts.attribution.Base
+                .doCreate(mediaObject.optJSONObject("attribution"));
         this.altText = mediaObject.optString("alt_text", "");
     }
 
@@ -78,7 +82,37 @@ public class Base extends ContentItem {
         return altText;
     }
 
-    public static ContentItem doCreate(JSONObject mediaObject) throws JSONException, com.github.savemytumblr.exception.RuntimeException {
+    public static ContentItem doCreate(JSONObject mediaObject)
+            throws JSONException, com.github.savemytumblr.exception.RuntimeException {
         return new Base(mediaObject);
+    }
+
+    @Override
+    public String toHTML(String newRoot) {
+        int maxWidth = getMedia().get(0).getWidth();
+        String sUrl = getMedia().get(0).getUrl();
+
+        for (int i = 1; i < getMedia().size(); ++i) {
+            com.github.savemytumblr.posts.media.Media mediaItem = getMedia().get(i);
+
+            if (mediaItem.getWidth() > maxWidth) {
+                maxWidth = mediaItem.getWidth();
+                sUrl = mediaItem.getUrl();
+            }
+        }
+
+        String res = "<img style=\"max-width: 100%; height: auto;\" src=\"";
+
+        if (newRoot == null) {
+            res += sUrl;
+        } else {
+            try {
+                res += Paths.get(newRoot, Paths.get(new URI(sUrl).getPath()).getFileName().toString());
+            } catch (URISyntaxException e) {
+                res += "dead_link";
+            }
+        }
+
+        return res + "\">";
     }
 }

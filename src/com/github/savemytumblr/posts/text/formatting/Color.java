@@ -27,10 +27,20 @@ public class Color extends Base {
     public Color(JSONObject formattingObject) throws JSONException {
         super(formattingObject);
 
-        // this.color = android.graphics.Color.parseColor(formattingObject.getString("hex"));
+        this.color = Integer.parseUnsignedInt(formattingObject.getString("hex").substring(1), 16);
     }
 
     public int getColor() {
         return color;
+    }
+
+    @Override
+    public String getStartHTMLTag() {
+        return "<font style=\"color: #" + Integer.toHexString(getColor()) + ";\">";
+    }
+
+    @Override
+    public String getEndHTMLTag() {
+        return "</font>";
     }
 }

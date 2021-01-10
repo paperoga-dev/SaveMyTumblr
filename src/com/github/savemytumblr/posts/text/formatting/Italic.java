@@ -25,4 +25,14 @@ public class Italic extends Base {
     public Italic(JSONObject formattingObject) throws JSONException {
         super(formattingObject);
     }
+
+    @Override
+    public String getStartHTMLTag() {
+        return "<i>";
+    }
+
+    @Override
+    public String getEndHTMLTag() {
+        return "</i>";
+    }
 }

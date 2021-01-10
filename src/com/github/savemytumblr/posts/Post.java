@@ -20,7 +20,9 @@ package com.github.savemytumblr.posts;
 
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeSet;
 
@@ -32,6 +34,8 @@ import com.github.savemytumblr.api.array.ContentInterface;
 import com.github.savemytumblr.blog.simple.Info;
 import com.github.savemytumblr.posts.layout.Ask;
 import com.github.savemytumblr.posts.layout.Rows;
+import com.github.savemytumblr.posts.text.OrderedListItem;
+import com.github.savemytumblr.posts.text.UnorderedListItem;
 
 public interface Post {
 
@@ -182,6 +186,82 @@ public interface Post {
 
             return list;
         }
+
+        public String toHTML(String newRoot) {
+            boolean isOrdered = false;
+            boolean isUnordered = false;
+            String res = "";
+
+            for (Trail parentPost : getTrail()) {
+                res += parentPost.toHTML(newRoot) + "<hr>";
+            }
+
+            res += "<b>" + getBlog().getName() + "</b><br><br>";
+
+            Set<Integer> askPos = new HashSet<Integer>();
+            for (int i = 0; i < getLayout().size(); ++i) {
+                if (getLayout().get(i) instanceof Ask) {
+                    askPos.addAll(((Ask) getLayout().get(i)).getBlocks());
+                }
+            }
+
+            boolean inAsk = false;
+            boolean askNameWritten = false;
+
+            for (int i = 0; i < getContent().size(); ++i) {
+                ContentItem item = getContent().get(i);
+
+                if (askPos.contains(i)) {
+                    if (!inAsk) {
+                        res += "<div style=\"background-color: lightgray;\">";
+                        inAsk = true;
+                    }
+                    if (!askNameWritten) {
+                        res += "<b>" + getAskingName() + "</b> chiede:";
+                        askNameWritten = true;
+                    }
+                } else {
+                    if (inAsk) {
+                        res += "</div>";
+                        inAsk = false;
+                    }
+                }
+
+                if (item instanceof OrderedListItem) {
+                    if (!isOrdered) {
+                        res += "<ol>";
+                        isOrdered = true;
+                    }
+                } else if (item instanceof UnorderedListItem) {
+                    if (!isUnordered) {
+                        res += "<ul>";
+                        isUnordered = true;
+                    }
+                } else {
+                    if (isOrdered) {
+                        res += "</ol>";
+                        isOrdered = false;
+                    }
+
+                    if (isUnordered) {
+                        res += "</ul>";
+                        isUnordered = false;
+                    }
+                }
+
+                if (!isOrdered && !isUnordered) {
+                    res += "<p>";
+                }
+
+                res += item.toHTML(newRoot);
+
+                if (!isOrdered && !isUnordered) {
+                    res += "</p>";
+                }
+            }
+
+            return res;
+        }
     }
 
     class Item extends Trail {
@@ -189,6 +269,7 @@ public interface Post {
         private List<String> tags;
         private String url;
         private String shortUrl;
+        private String summary;
         private String json;
 
         public Item(JSONObject postObject) throws JSONException, com.github.savemytumblr.exception.RuntimeException {
@@ -198,6 +279,7 @@ public interface Post {
             this.timestamp = new Date(postObject.getLong("timestamp") * 1000L);
             this.url = postObject.getString("post_url");
             this.shortUrl = postObject.getString("short_url");
+            this.summary = postObject.optString("summary", "");
 
             this.tags = new ArrayList<>();
             JSONArray tags = postObject.optJSONArray("tags");
@@ -224,8 +306,27 @@ public interface Post {
             return shortUrl;
         }
 
+        public String getSummary() {
+            return summary;
+        }
+
         public String getJSON() {
             return json;
+        }
+
+        @Override
+        public String toHTML(String newRoot) {
+            String res = "<html><head><meta charset=\"UTF-8\"><title>" + getSummary()
+                    + "</title></head><body style=\"font-family: Arial, sans-serif;\">" + super.toHTML(newRoot)
+                    + "<small><p>" + getTimestamp().toString() + "</p>";
+
+            if (!getTags().isEmpty()) {
+                res += "<p># " + String.join("<br># ", getTags()) + "</p>";
+            }
+
+            res += "</small><br><a href=\"" + getUrl() + "\" target=\"_blank\">Tumblr link</a></body></html>";
+
+            return res;
         }
     }
 

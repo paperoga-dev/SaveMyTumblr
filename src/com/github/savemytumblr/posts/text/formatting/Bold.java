@@ -25,4 +25,14 @@ public class Bold extends Base {
     public Bold(JSONObject formattingObject) throws JSONException {
         super(formattingObject);
     }
+
+    @Override
+    public String getStartHTMLTag() {
+        return "<b>";
+    }
+
+    @Override
+    public String getEndHTMLTag() {
+        return "</b>";
+    }
 }

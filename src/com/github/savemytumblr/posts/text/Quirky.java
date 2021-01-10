@@ -25,4 +25,9 @@ public class Quirky extends Base {
     public Quirky(JSONObject textObject) throws JSONException, com.github.savemytumblr.exception.RuntimeException {
         super(textObject);
     }
+
+    @Override
+    public String toHTML(String newRoot) {
+        return "<h1><div style=\"font-family: Cursive;\">" + getFormattedText() + "</div></h1>";
+    }
 }

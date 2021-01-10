@@ -22,7 +22,13 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 public class UnorderedListItem extends Base {
-    public UnorderedListItem(JSONObject textObject) throws JSONException, com.github.savemytumblr.exception.RuntimeException {
+    public UnorderedListItem(JSONObject textObject)
+            throws JSONException, com.github.savemytumblr.exception.RuntimeException {
         super(textObject);
+    }
+
+    @Override
+    public String toHTML(String newRoot) {
+        return "<li>" + getFormattedText() + "</li>";
     }
 }

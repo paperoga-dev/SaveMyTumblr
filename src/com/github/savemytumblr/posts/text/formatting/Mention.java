@@ -18,10 +18,10 @@
 
 package com.github.savemytumblr.posts.text.formatting;
 
-import com.github.savemytumblr.blog.simple.Info;
-
 import org.json.JSONException;
 import org.json.JSONObject;
+
+import com.github.savemytumblr.blog.simple.Info;
 
 public class Mention extends Base {
     private Info.Reference blog;
@@ -34,5 +34,15 @@ public class Mention extends Base {
 
     public Info.Reference getBlog() {
         return blog;
+    }
+
+    @Override
+    public String getStartHTMLTag() {
+        return "<u>";
+    }
+
+    @Override
+    public String getEndHTMLTag() {
+        return "</u>";
     }
 }

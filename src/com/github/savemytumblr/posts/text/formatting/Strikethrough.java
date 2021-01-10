@@ -25,4 +25,14 @@ public class Strikethrough extends Base {
     public Strikethrough(JSONObject formattingObject) throws JSONException {
         super(formattingObject);
     }
+
+    @Override
+    public String getStartHTMLTag() {
+        return "<strike>";
+    }
+
+    @Override
+    public String getEndHTMLTag() {
+        return "</strike>";
+    }
 }

@@ -25,4 +25,9 @@ public class Plain extends Base {
     public Plain(JSONObject textObject) throws JSONException, com.github.savemytumblr.exception.RuntimeException {
         super(textObject);
     }
+
+    @Override
+    public String toHTML(String newRoot) {
+        return getFormattedText();
+    }
 }

@@ -25,4 +25,9 @@ public class Chat extends Base {
     public Chat(JSONObject textObject) throws JSONException, com.github.savemytumblr.exception.RuntimeException {
         super(textObject);
     }
+
+    @Override
+    public String toHTML(String newRoot) {
+        return "<div style=\"font-family: 'Courier New', monospace;\">" + getFormattedText() + "</div>";
+    }
 }

@@ -18,11 +18,11 @@
 
 package com.github.savemytumblr.posts.link;
 
-import com.github.savemytumblr.posts.ContentItem;
-import com.github.savemytumblr.posts.media.Media;
-
 import org.json.JSONException;
 import org.json.JSONObject;
+
+import com.github.savemytumblr.posts.ContentItem;
+import com.github.savemytumblr.posts.media.Media;
 
 public class Base extends ContentItem {
     private String url;
@@ -45,7 +45,8 @@ public class Base extends ContentItem {
         this.poster = allocateOrNothing(Media.class, linkObject, "poster");
     }
 
-    public static ContentItem doCreate(JSONObject linkObject) throws JSONException, com.github.savemytumblr.exception.RuntimeException {
+    public static ContentItem doCreate(JSONObject linkObject)
+            throws JSONException, com.github.savemytumblr.exception.RuntimeException {
         return new Base(linkObject);
     }
 
@@ -75,5 +76,10 @@ public class Base extends ContentItem {
 
     public Media getPoster() {
         return poster;
+    }
+
+    @Override
+    public String toHTML(String newRoot) {
+        return "<a href=\"" + getUrl() + "\" target=\"_blank\">" + getTitle() + "</a>";
     }
 }

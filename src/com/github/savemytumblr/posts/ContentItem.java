@@ -18,48 +18,47 @@
 
 package com.github.savemytumblr.posts;
 
-import org.json.JSONException;
-import org.json.JSONObject;
-
 import java.lang.reflect.InvocationTargetException;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.json.JSONException;
+import org.json.JSONObject;
+
 public abstract class ContentItem {
 
-    private static final Map<String, Class<? extends ContentItem>> typesMap =
-            new HashMap<String, Class<? extends ContentItem>>(){
-				private static final long serialVersionUID = 1L;
-			{
-                put("text", com.github.savemytumblr.posts.text.Base.class);
-                put("image", com.github.savemytumblr.posts.media.Base.class);
-                put("link", com.github.savemytumblr.posts.link.Base.class);
-                put("audio", com.github.savemytumblr.posts.audio.Base.class);
-                put("video", com.github.savemytumblr.posts.video.Base.class);
-            }};
+    private static final Map<String, Class<? extends ContentItem>> typesMap = new HashMap<String, Class<? extends ContentItem>>() {
+        private static final long serialVersionUID = 1L;
+        {
+            put("text", com.github.savemytumblr.posts.text.Base.class);
+            put("image", com.github.savemytumblr.posts.media.Base.class);
+            put("link", com.github.savemytumblr.posts.link.Base.class);
+            put("audio", com.github.savemytumblr.posts.audio.Base.class);
+            put("video", com.github.savemytumblr.posts.video.Base.class);
+        }
+    };
 
-    static public <T> T allocateOrNothing(Class<T> clazz, JSONObject jsonObject, String key) throws com.github.savemytumblr.exception.RuntimeException {
+    static public <T> T allocateOrNothing(Class<T> clazz, JSONObject jsonObject, String key)
+            throws com.github.savemytumblr.exception.RuntimeException {
         try {
             JSONObject object = jsonObject.optJSONObject(key);
             return (object != null) ? clazz.getDeclaredConstructor(JSONObject.class).newInstance(object) : null;
-        } catch (InvocationTargetException |
-                NoSuchMethodException |
-                IllegalAccessException |
-                InstantiationException e) {
-            throw new com.github.savemytumblr.exception.RuntimeException(clazz.getName() + "has no construction with a JSONObject argument");
+        } catch (InvocationTargetException | NoSuchMethodException | IllegalAccessException
+                | InstantiationException e) {
+            throw new com.github.savemytumblr.exception.RuntimeException(
+                    clazz.getName() + "has no construction with a JSONObject argument");
         }
     }
 
-    static public ContentItem create(JSONObject contentItem) throws JSONException, com.github.savemytumblr.exception.RuntimeException {
+    static public ContentItem create(JSONObject contentItem)
+            throws JSONException, com.github.savemytumblr.exception.RuntimeException {
         String type = contentItem.getString("type");
         try {
-            return (ContentItem) typesMap.get(type)
-                    .getMethod("doCreate", JSONObject.class)
-                    .invoke(null, contentItem);
-        } catch (InvocationTargetException |
-                NoSuchMethodException |
-                IllegalAccessException e) {
+            return (ContentItem) typesMap.get(type).getMethod("doCreate", JSONObject.class).invoke(null, contentItem);
+        } catch (InvocationTargetException | NoSuchMethodException | IllegalAccessException e) {
             throw new com.github.savemytumblr.exception.RuntimeException("Add missing type: " + type);
         }
     }
+
+    public abstract String toHTML(String newRoot);
 }

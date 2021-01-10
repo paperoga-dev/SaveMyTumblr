@@ -25,4 +25,9 @@ public class Indented extends Base {
     public Indented(JSONObject textObject) throws JSONException, com.github.savemytumblr.exception.RuntimeException {
         super(textObject);
     }
+
+    @Override
+    public String toHTML(String newRoot) {
+        return "<blockquote>" + getFormattedText() + "</blockquote>";
+    }
 }
