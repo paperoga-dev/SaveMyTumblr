@@ -36,7 +36,7 @@ public class OrderedListItem extends Base {
     }
 
     @Override
-    public String toHTML(String newRoot) {
+    public String toHTML(String newRoot, String id) {
         return "<li>" + getFormattedText() + "</li>";
     }
 }

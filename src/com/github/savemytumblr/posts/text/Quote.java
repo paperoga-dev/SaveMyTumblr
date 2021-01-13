@@ -27,7 +27,7 @@ public class Quote extends Base {
     }
 
     @Override
-    public String toHTML(String newRoot) {
+    public String toHTML(String newRoot, String id) {
         return "<h1><div style=\"font-family: 'Times New Roman', serif;\">" + getFormattedText() + "</div></h1>";
     }
 }

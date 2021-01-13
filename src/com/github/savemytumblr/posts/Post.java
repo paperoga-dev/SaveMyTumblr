@@ -187,13 +187,13 @@ public interface Post {
             return list;
         }
 
-        public String toHTML(String newRoot) {
+        public String toHTML(String newRoot, String id) {
             boolean isOrdered = false;
             boolean isUnordered = false;
             String res = "";
 
             for (Trail parentPost : getTrail()) {
-                res += parentPost.toHTML(newRoot) + "<hr>";
+                res += parentPost.toHTML(newRoot, id) + "<hr>";
             }
 
             res += "<b>" + getBlog().getName() + "</b><br><br>";
@@ -253,7 +253,7 @@ public interface Post {
                     res += "<p>";
                 }
 
-                res += item.toHTML(newRoot);
+                res += item.toHTML(newRoot, id);
 
                 if (!isOrdered && !isUnordered) {
                     res += "</p>";
@@ -315,9 +315,9 @@ public interface Post {
         }
 
         @Override
-        public String toHTML(String newRoot) {
+        public String toHTML(String newRoot, String id) {
             String res = "<html><head><meta charset=\"UTF-8\"><title>" + getSummary()
-                    + "</title></head><body style=\"font-family: Arial, sans-serif;\">" + super.toHTML(newRoot)
+                    + "</title></head><body style=\"font-family: Arial, sans-serif;\">" + super.toHTML(newRoot, id)
                     + "<small><p>" + getTimestamp().toString() + "</p>";
 
             if (!getTags().isEmpty()) {

@@ -79,7 +79,7 @@ public class Base extends ContentItem {
     }
 
     @Override
-    public String toHTML(String newRoot) {
+    public String toHTML(String newRoot, String id) {
         return "<a href=\"" + getUrl() + "\" target=\"_blank\">" + getTitle() + "</a>";
     }
 }

@@ -88,7 +88,7 @@ public class Base extends ContentItem {
     }
 
     @Override
-    public String toHTML(String newRoot) {
+    public String toHTML(String newRoot, String id) {
         int maxWidth = getMedia().get(0).getWidth();
         String sUrl = getMedia().get(0).getUrl();
 
@@ -107,7 +107,7 @@ public class Base extends ContentItem {
             res += sUrl;
         } else {
             try {
-                res += Paths.get(newRoot, Paths.get(new URI(sUrl).getPath()).getFileName().toString());
+                res += Paths.get(id, Paths.get(new URI(sUrl).getPath()).getFileName().toString());
             } catch (URISyntaxException e) {
                 res += "dead_link";
             }

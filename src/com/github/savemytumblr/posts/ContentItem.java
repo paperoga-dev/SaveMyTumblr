@@ -60,5 +60,5 @@ public abstract class ContentItem {
         }
     }
 
-    public abstract String toHTML(String newRoot);
+    public abstract String toHTML(String newRoot, String id);
 }

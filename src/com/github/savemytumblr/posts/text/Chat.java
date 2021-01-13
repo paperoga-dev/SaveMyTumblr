@@ -27,7 +27,7 @@ public class Chat extends Base {
     }
 
     @Override
-    public String toHTML(String newRoot) {
+    public String toHTML(String newRoot, String id) {
         return "<div style=\"font-family: 'Courier New', monospace;\">" + getFormattedText() + "</div>";
     }
 }

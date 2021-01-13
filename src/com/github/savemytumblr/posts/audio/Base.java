@@ -106,11 +106,18 @@ public class Base extends ContentItem {
     }
 
     @Override
-    public String toHTML(String newRoot) {
+    public String toHTML(String newRoot, String id) {
         try {
-            Path audioPath = Paths.get(newRoot, Paths.get(new URI(getUrl()).getPath()).getFileName().toString());
-            if (audioPath.toFile().exists()) {
-                return "<audio controls><source src=\"" + audioPath
+            String sUrl = (getMedia() != null) ? getMedia().getUrl() : getUrl();
+            String fName = "";
+            Path audioPath = null;
+            if (!sUrl.isEmpty()) {
+                fName = Paths.get(new URI(sUrl).getPath().split("\\?")[0]).getFileName().toString();
+                audioPath = Paths.get(newRoot, id, fName);
+            }
+
+            if ((audioPath != null) && audioPath.toFile().exists()) {
+                return "<audio controls><source src=\"" + Paths.get(id, fName)
                         + "\">Your browser does not support the audio tag.</audio>";
             } else if (!getEmbedHtml().isEmpty()) {
                 return getEmbedHtml();

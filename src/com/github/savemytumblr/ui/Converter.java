@@ -48,7 +48,7 @@ public class Converter extends TabItem {
 
         Label lblPath = new Label(comp, SWT.NONE);
         lblPath.setText("Path:");
-        lblPath.setLayoutData(new GridData(GridData.FILL, GridData.FILL, true, false));
+        lblPath.setLayoutData(new GridData(GridData.FILL, GridData.VERTICAL_ALIGN_CENTER, true, false));
 
         Button btnPathSelect = new Button(comp, SWT.PUSH);
         btnPathSelect.setText("Select");
@@ -137,8 +137,7 @@ public class Converter extends TabItem {
 
                                         writer.write(new com.github.savemytumblr.posts.Post.Item(
                                                 new JSONObject(Files.readString(file, StandardCharsets.UTF_8)))
-                                                        .toHTML(Paths.get(file.getParent().toString(), fileParts[0])
-                                                                .toString()));
+                                                        .toHTML(file.getParent().toString(), fileParts[0]).toString());
                                         writer.close();
 
                                         ++okPosts;

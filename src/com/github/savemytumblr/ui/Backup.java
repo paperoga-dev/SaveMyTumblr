@@ -1,6 +1,5 @@
 package com.github.savemytumblr.ui;
 
-import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.concurrent.ExecutorService;
@@ -14,6 +13,7 @@ import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.DirectoryDialog;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.ProgressBar;
 import org.eclipse.swt.widgets.TabFolder;
@@ -23,12 +23,12 @@ import org.scribe.model.Token;
 
 import com.github.savemytumblr.LogText;
 import com.github.savemytumblr.LoginBrowser;
-import com.github.savemytumblr.MainApp;
 import com.github.savemytumblr.TumblrClient;
 import com.github.savemytumblr.api.Authenticate;
 import com.github.savemytumblr.exception.BaseException;
 
 public class Backup extends TabItem {
+    private String backupPath = "";
     private boolean loggedIn = false;
     private com.github.savemytumblr.Backup backup = null;
 
@@ -47,6 +47,14 @@ public class Backup extends TabItem {
         Text txtBlogName = new Text(comp, SWT.SINGLE);
         txtBlogName.setLayoutData(new GridData(GridData.FILL, GridData.FILL, true, false));
 
+        Label lblBackupPath = new Label(comp, SWT.NONE);
+        lblBackupPath.setText("Backup path:");
+        lblBackupPath.setLayoutData(new GridData(GridData.FILL, GridData.VERTICAL_ALIGN_CENTER, true, false));
+
+        Button btnBackupPathSelect = new Button(comp, SWT.PUSH);
+        btnBackupPathSelect.setText("Select");
+        btnBackupPathSelect.setLayoutData(new GridData(GridData.HORIZONTAL_ALIGN_END));
+
         ProgressBar pbDownload = new ProgressBar(comp, SWT.SMOOTH);
         pbDownload.setLayoutData(new GridData(GridData.FILL, GridData.FILL, true, false, 2, 1));
 
@@ -61,6 +69,19 @@ public class Backup extends TabItem {
         Button btnBackup = new Button(comp, SWT.PUSH);
         btnBackup.setText("Backup");
         btnBackup.setLayoutData(new GridData(GridData.HORIZONTAL_ALIGN_END));
+
+        btnBackupPathSelect.addSelectionListener(new SelectionListener() {
+
+            @Override
+            public void widgetDefaultSelected(SelectionEvent arg0) {
+            }
+
+            @Override
+            public void widgetSelected(SelectionEvent arg0) {
+                backupPath = new DirectoryDialog(parent.getShell()).open();
+                lblBackupPath.setText("Path: " + backupPath);
+            }
+        });
 
         TumblrClient tc = new TumblrClient(new TumblrClient.Executor() {
             @Override
@@ -199,13 +220,15 @@ public class Backup extends TabItem {
 
             @Override
             public void widgetSelected(SelectionEvent arg0) {
+                if (backupPath.isEmpty()) {
+                    return;
+                }
+
                 if ((backup != null) && backup.isRunning()) {
                     backup.stop();
                     btnBackup.setText("Backup");
                 } else {
-                    Path mainPath = Paths
-                            .get(MainApp.class.getProtectionDomain().getCodeSource().getLocation().getPath());
-                    backup = new com.github.savemytumblr.Backup(mainPath, tc, txtBlogName.getText(),
+                    backup = new com.github.savemytumblr.Backup(Paths.get(backupPath), tc, txtBlogName.getText(),
                             new com.github.savemytumblr.Backup.Progress() {
                                 @Override
                                 public void progress(int current, int total) {

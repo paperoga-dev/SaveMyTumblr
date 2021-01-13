@@ -215,6 +215,8 @@ public class Backup {
                 continue;
             }
 
+            Files.createDirectories(mediaPath);
+
             Path fPath = mediaPath.resolve(Paths.get(new URI(sUrl).getPath()).getFileName());
 
             URL url = new URL(sUrl);
@@ -254,10 +256,7 @@ public class Backup {
         writer.write(item.getJSON());
         writer.close();
 
-        Path mediaPath = postPath.resolve(String.valueOf(item.getId()));
-        Files.createDirectories(mediaPath);
-
-        saveMedia(mediaPath, item);
+        saveMedia(postPath.resolve(String.valueOf(item.getId())), item);
 
         progress.log("");
     }

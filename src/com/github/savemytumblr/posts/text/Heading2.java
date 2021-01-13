@@ -27,7 +27,7 @@ public class Heading2 extends Base {
     }
 
     @Override
-    public String toHTML(String newRoot) {
+    public String toHTML(String newRoot, String id) {
         return "<h2>" + getFormattedText() + "</h2>";
     }
 }

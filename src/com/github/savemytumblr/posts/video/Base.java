@@ -99,11 +99,18 @@ public class Base extends ContentItem {
     }
 
     @Override
-    public String toHTML(String newRoot) {
+    public String toHTML(String newRoot, String id) {
         try {
-            Path videoPath = Paths.get(newRoot, Paths.get(new URI(getUrl()).getPath()).getFileName().toString());
-            if (videoPath.toFile().exists()) {
-                return "<video controls><source src=\"" + videoPath
+            String sUrl = (getMedia() != null) ? getMedia().getUrl() : getUrl();
+            String fName = "";
+            Path videoPath = null;
+            if (!sUrl.isEmpty()) {
+                fName = Paths.get(new URI(sUrl).getPath().split("\\?")[0]).getFileName().toString();
+                videoPath = Paths.get(newRoot, id, fName);
+            }
+
+            if ((videoPath != null) && videoPath.toFile().exists()) {
+                return "<video controls><source src=\"" + Paths.get(id, fName)
                         + "\">Your browser does not support the video tag.</video>";
             } else if (!getEmbedHtml().isEmpty()) {
                 return getEmbedHtml();
