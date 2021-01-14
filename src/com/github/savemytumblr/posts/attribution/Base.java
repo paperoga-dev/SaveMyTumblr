@@ -58,6 +58,8 @@ public class Base {
             return (Base) typesMap.get(attributionType).getMethod("doCreate", JSONObject.class).invoke(null,
                     attributionObject);
         } catch (InvocationTargetException | NoSuchMethodException | IllegalAccessException e) {
+            e.printStackTrace();
+
             throw new com.github.savemytumblr.exception.RuntimeException(
                     "Add missing attribution type: " + attributionType);
         }

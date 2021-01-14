@@ -81,6 +81,8 @@ public class Authenticate {
                 });
 
             } catch (final OAuthException e) {
+                e.printStackTrace();
+
                 executor.execute(new Runnable() {
                     @Override
                     public void run() {
@@ -128,6 +130,8 @@ public class Authenticate {
                 });
 
             } catch (final OAuthException e) {
+                e.printStackTrace();
+
                 executor.execute(new Runnable() {
                     @Override
                     public void run() {

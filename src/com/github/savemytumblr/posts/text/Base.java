@@ -81,6 +81,8 @@ public abstract class Base extends ContentItem {
                         .newInstance(formattingItem));
             } catch (InstantiationException | InvocationTargetException | NoSuchMethodException
                     | IllegalAccessException e) {
+                e.printStackTrace();
+
                 throw new com.github.savemytumblr.exception.RuntimeException("Add missing formatting type: " + type);
             }
         }
@@ -99,6 +101,8 @@ public abstract class Base extends ContentItem {
             return typesMap.get(subType).getDeclaredConstructor(JSONObject.class).newInstance(textObject);
         } catch (InstantiationException | InvocationTargetException | NoSuchMethodException
                 | IllegalAccessException e) {
+            e.printStackTrace();
+
             throw new com.github.savemytumblr.exception.RuntimeException("Add missing text subtype: " + subType);
         }
     }

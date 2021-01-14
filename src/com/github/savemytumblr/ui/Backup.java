@@ -134,6 +134,8 @@ public class Backup extends TabItem {
                 try {
                     return Arrays.asList(prefs.keys()).contains(key);
                 } catch (BackingStoreException e) {
+                    e.printStackTrace();
+
                     return false;
                 }
             }

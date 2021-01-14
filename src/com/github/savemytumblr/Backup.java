@@ -6,6 +6,7 @@ import java.io.InputStream;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
+import java.net.UnknownHostException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -18,6 +19,7 @@ import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import javax.net.ssl.HttpsURLConnection;
+import javax.net.ssl.SSLHandshakeException;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -165,7 +167,7 @@ public class Backup {
             this.blogPath = backupRootPath.resolve(this.blogName);
             Files.createDirectories(this.blogPath);
         } catch (IOException e) {
-
+            e.printStackTrace();
         }
     }
 
@@ -217,22 +219,25 @@ public class Backup {
 
             Files.createDirectories(mediaPath);
 
-            Path fPath = mediaPath.resolve(Paths.get(new URI(sUrl).getPath()).getFileName());
+            try {
+                Path fPath = mediaPath.resolve(Paths.get(new URI(sUrl).getPath()).getFileName());
 
-            URL url = new URL(sUrl);
+                URL url = new URL(sUrl);
 
-            progress.log("=> Save media " + sUrl);
+                progress.log("=> Save media " + sUrl);
 
-            HttpsURLConnection httpConn = (HttpsURLConnection) url.openConnection();
-            httpConn.addRequestProperty("User-Agent",
-                    "Mozilla/5.0 (Windows NT 6.1; Win64; x64; rv:56.0) Gecko/20100101 Firefox/56.0");
-            httpConn.addRequestProperty("Accept", req);
-            int responseCode = httpConn.getResponseCode();
+                HttpsURLConnection httpConn = (HttpsURLConnection) url.openConnection();
+                httpConn.addRequestProperty("User-Agent",
+                        "Mozilla/5.0 (Windows NT 6.1; Win64; x64; rv:56.0) Gecko/20100101 Firefox/56.0");
+                httpConn.addRequestProperty("Accept", req);
 
-            if (responseCode == HttpsURLConnection.HTTP_OK) {
-                InputStream inputStream = httpConn.getInputStream();
-                Files.copy(inputStream, fPath, StandardCopyOption.REPLACE_EXISTING);
-                inputStream.close();
+                if (httpConn.getResponseCode() == HttpsURLConnection.HTTP_OK) {
+                    InputStream inputStream = httpConn.getInputStream();
+                    Files.copy(inputStream, fPath, StandardCopyOption.REPLACE_EXISTING);
+                    inputStream.close();
+                }
+            } catch (SSLHandshakeException | URISyntaxException | UnknownHostException e) {
+
             }
         }
 
@@ -318,6 +323,7 @@ public class Backup {
                                         } catch (Exception e) {
                                             isRunning.set(false);
                                             progress.onCompleted(false);
+                                            e.printStackTrace();
                                             return;
                                         }
                                         ++savedFromHead;
@@ -369,6 +375,8 @@ public class Backup {
                             public void onFailure(BaseException e) {
                                 isRunning.set(false);
                                 progress.onCompleted(false);
+
+                                e.printStackTrace();
                             }
                         });
             }
@@ -445,6 +453,7 @@ public class Backup {
                                     } catch (Exception e) {
                                         isRunning.set(false);
                                         progress.onCompleted(false);
+                                        e.printStackTrace();
                                         return;
                                     }
                                     updateState(null,
@@ -471,6 +480,8 @@ public class Backup {
                             public void onFailure(BaseException e) {
                                 isRunning.set(false);
                                 progress.onCompleted(false);
+
+                                e.printStackTrace();
                             }
                         });
             }
@@ -490,6 +501,7 @@ public class Backup {
 
             backupState = new BackupState(jsonRoot);
         } catch (IOException | JSONException e) {
+            e.printStackTrace();
             backupState = new BackupState();
         }
 

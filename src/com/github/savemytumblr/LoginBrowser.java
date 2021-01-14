@@ -87,6 +87,8 @@ public class LoginBrowser extends Dialog {
             messageBox.setText("Exit");
             messageBox.open();
 
+            e.printStackTrace();
+
             return null;
         }
     }

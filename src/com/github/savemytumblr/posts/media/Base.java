@@ -109,6 +109,8 @@ public class Base extends ContentItem {
             try {
                 res += Paths.get(id, Paths.get(new URI(sUrl).getPath()).getFileName().toString());
             } catch (URISyntaxException e) {
+                e.printStackTrace();
+
                 res += "dead_link";
             }
         }

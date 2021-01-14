@@ -18,33 +18,32 @@
 
 package com.github.savemytumblr.posts;
 
-import org.json.JSONException;
-import org.json.JSONObject;
-
 import java.lang.reflect.InvocationTargetException;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.json.JSONException;
+import org.json.JSONObject;
+
 public abstract class LayoutItem {
 
-    private static final Map<String, Class<? extends LayoutItem>> typesMap =
-            new HashMap<String, Class<? extends LayoutItem>>(){
-				private static final long serialVersionUID = 1L;
-			{
-                put("rows", com.github.savemytumblr.posts.layout.Rows.class);
-                put("ask", com.github.savemytumblr.posts.layout.Ask.class);
-                put("condensed", com.github.savemytumblr.posts.layout.Condensed.class);
-            }};
+    private static final Map<String, Class<? extends LayoutItem>> typesMap = new HashMap<String, Class<? extends LayoutItem>>() {
+        private static final long serialVersionUID = 1L;
+        {
+            put("rows", com.github.savemytumblr.posts.layout.Rows.class);
+            put("ask", com.github.savemytumblr.posts.layout.Ask.class);
+            put("condensed", com.github.savemytumblr.posts.layout.Condensed.class);
+        }
+    };
 
-    static LayoutItem create(JSONObject contentItem) throws JSONException, com.github.savemytumblr.exception.RuntimeException {
+    static LayoutItem create(JSONObject contentItem)
+            throws JSONException, com.github.savemytumblr.exception.RuntimeException {
         String type = contentItem.getString("type");
         try {
-            return (LayoutItem) typesMap.get(type)
-                    .getMethod("doCreate", JSONObject.class)
-                    .invoke(null, contentItem);
-        } catch (InvocationTargetException |
-                NoSuchMethodException |
-                IllegalAccessException e) {
+            return (LayoutItem) typesMap.get(type).getMethod("doCreate", JSONObject.class).invoke(null, contentItem);
+        } catch (InvocationTargetException | NoSuchMethodException | IllegalAccessException e) {
+            e.printStackTrace();
+
             throw new com.github.savemytumblr.exception.RuntimeException("Add missing layout: " + type);
         }
     }

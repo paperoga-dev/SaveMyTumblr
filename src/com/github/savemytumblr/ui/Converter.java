@@ -145,6 +145,8 @@ public class Converter extends TabItem {
                                     } catch (NumberFormatException e) {
 
                                     } catch (JSONException | RuntimeException | IOException e) {
+                                        e.printStackTrace();
+
                                         getDisplay().asyncExec(new Runnable() {
                                             @Override
                                             public void run() {

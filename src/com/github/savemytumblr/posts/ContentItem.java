@@ -45,6 +45,8 @@ public abstract class ContentItem {
             return (object != null) ? clazz.getDeclaredConstructor(JSONObject.class).newInstance(object) : null;
         } catch (InvocationTargetException | NoSuchMethodException | IllegalAccessException
                 | InstantiationException e) {
+            e.printStackTrace();
+
             throw new com.github.savemytumblr.exception.RuntimeException(
                     clazz.getName() + "has no construction with a JSONObject argument");
         }
@@ -56,6 +58,8 @@ public abstract class ContentItem {
         try {
             return (ContentItem) typesMap.get(type).getMethod("doCreate", JSONObject.class).invoke(null, contentItem);
         } catch (InvocationTargetException | NoSuchMethodException | IllegalAccessException e) {
+            e.printStackTrace();
+
             throw new com.github.savemytumblr.exception.RuntimeException("Add missing type: " + type);
         }
     }

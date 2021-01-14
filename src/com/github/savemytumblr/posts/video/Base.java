@@ -118,6 +118,8 @@ public class Base extends ContentItem {
                 return "<a href=\"" + getUrl() + "\" target=\"_blank\">Video link</a>";
             }
         } catch (URISyntaxException e) {
+            e.printStackTrace();
+
             return "dead_link";
         }
     }
