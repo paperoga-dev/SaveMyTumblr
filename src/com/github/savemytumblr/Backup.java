@@ -3,6 +3,7 @@ package com.github.savemytumblr;
 import java.io.BufferedWriter;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.ConnectException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
@@ -219,25 +220,32 @@ public class Backup {
 
             Files.createDirectories(mediaPath);
 
-            try {
-                Path fPath = mediaPath.resolve(Paths.get(new URI(sUrl).getPath()).getFileName());
+            int tries = 4;
+            while (--tries != 0) {
+                try {
+                    Path fPath = mediaPath.resolve(Paths.get(new URI(sUrl).getPath()).getFileName());
 
-                URL url = new URL(sUrl);
+                    URL url = new URL(sUrl);
 
-                progress.log("=> Save media " + sUrl);
+                    progress.log("=> Save media " + sUrl);
 
-                HttpsURLConnection httpConn = (HttpsURLConnection) url.openConnection();
-                httpConn.addRequestProperty("User-Agent",
-                        "Mozilla/5.0 (Windows NT 6.1; Win64; x64; rv:56.0) Gecko/20100101 Firefox/56.0");
-                httpConn.addRequestProperty("Accept", req);
+                    HttpsURLConnection httpConn = (HttpsURLConnection) url.openConnection();
+                    httpConn.addRequestProperty("User-Agent",
+                            "Mozilla/5.0 (Windows NT 6.1; Win64; x64; rv:56.0) Gecko/20100101 Firefox/56.0");
+                    httpConn.addRequestProperty("Accept", req);
 
-                if (httpConn.getResponseCode() == HttpsURLConnection.HTTP_OK) {
-                    InputStream inputStream = httpConn.getInputStream();
-                    Files.copy(inputStream, fPath, StandardCopyOption.REPLACE_EXISTING);
-                    inputStream.close();
+                    if (httpConn.getResponseCode() == HttpsURLConnection.HTTP_OK) {
+                        InputStream inputStream = httpConn.getInputStream();
+                        Files.copy(inputStream, fPath, StandardCopyOption.REPLACE_EXISTING);
+                        inputStream.close();
+                    }
+                } catch (SSLHandshakeException | URISyntaxException | UnknownHostException e) {
+
+                } catch (ConnectException e) {
+                    continue;
                 }
-            } catch (SSLHandshakeException | URISyntaxException | UnknownHostException e) {
 
+                break;
             }
         }
 
