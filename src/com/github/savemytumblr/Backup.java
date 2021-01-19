@@ -10,11 +10,13 @@ import java.net.URL;
 import java.net.UnknownHostException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
+import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.time.LocalDate;
 import java.time.ZoneId;
+import java.util.Comparator;
 import java.util.Date;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -30,6 +32,7 @@ import com.github.savemytumblr.blog.simple.Info;
 import com.github.savemytumblr.exception.BaseException;
 import com.github.savemytumblr.posts.ContentItem;
 import com.github.savemytumblr.posts.Post;
+import com.github.savemytumblr.posts.Post.Item;
 import com.github.savemytumblr.posts.Post.Trail;
 
 public class Backup {
@@ -218,6 +221,8 @@ public class Backup {
                 continue;
             }
 
+            sUrl = sUrl.replace(" ", "%20");
+
             Files.createDirectories(mediaPath);
 
             int tries = 4;
@@ -310,6 +315,13 @@ public class Backup {
                         new com.github.savemytumblr.api.array.CompletionInterface<Post.Item, Post.Data>() {
                             @Override
                             public void onSuccess(List<Post.Item> result, int offset, int limit, int count) {
+                                result.sort(new Comparator<Post.Item>() {
+                                    @Override
+                                    public int compare(Item o1, Item o2) {
+                                        return o2.getTimestamp().compareTo(o1.getTimestamp());
+                                    }
+                                });
+
                                 boolean headFound = false;
                                 boolean emptyBackup = backupState.getStart().isNull();
                                 int pinnedItems = 0;
@@ -410,6 +422,13 @@ public class Backup {
                                     return;
                                 }
 
+                                result.sort(new Comparator<Post.Item>() {
+                                    @Override
+                                    public int compare(Item o1, Item o2) {
+                                        return o2.getTimestamp().compareTo(o1.getTimestamp());
+                                    }
+                                });
+
                                 int index = 0;
 
                                 if (!tailFound) {
@@ -508,7 +527,9 @@ public class Backup {
                     new String(Files.readAllBytes(this.blogPath.resolve("data.json")), StandardCharsets.UTF_8));
 
             backupState = new BackupState(jsonRoot);
-        } catch (IOException | JSONException e) {
+        } catch (NoSuchFileException e) {
+            backupState = new BackupState();
+        } catch (Exception e) {
             e.printStackTrace();
             backupState = new BackupState();
         }
