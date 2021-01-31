@@ -35,6 +35,8 @@ public class Backup extends TabItem {
     public Backup(TabFolder parent, Preferences prefs, ExecutorService executor) {
         super(parent, SWT.BORDER);
 
+        this.backupPath = System.getProperty("user.home");
+
         Composite comp = new Composite(parent, SWT.BORDER);
 
         GridLayout gridLayout = new GridLayout();
@@ -48,7 +50,7 @@ public class Backup extends TabItem {
         txtBlogName.setLayoutData(new GridData(GridData.FILL, GridData.FILL, true, false));
 
         Label lblBackupPath = new Label(comp, SWT.NONE);
-        lblBackupPath.setText("Backup path:");
+        lblBackupPath.setText("Backup path: " + this.backupPath);
         lblBackupPath.setLayoutData(new GridData(GridData.FILL, GridData.VERTICAL_ALIGN_CENTER, true, false));
 
         Button btnBackupPathSelect = new Button(comp, SWT.PUSH);
@@ -79,7 +81,7 @@ public class Backup extends TabItem {
             @Override
             public void widgetSelected(SelectionEvent arg0) {
                 backupPath = new DirectoryDialog(parent.getShell()).open();
-                lblBackupPath.setText("Path: " + backupPath);
+                lblBackupPath.setText("Backup path: " + backupPath);
             }
         });
 

@@ -22,7 +22,7 @@ import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import javax.net.ssl.HttpsURLConnection;
-import javax.net.ssl.SSLHandshakeException;
+import javax.net.ssl.SSLException;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -244,7 +244,7 @@ public class Backup {
                         Files.copy(inputStream, fPath, StandardCopyOption.REPLACE_EXISTING);
                         inputStream.close();
                     }
-                } catch (SSLHandshakeException | URISyntaxException | UnknownHostException e) {
+                } catch (SSLException | URISyntaxException | UnknownHostException e) {
 
                 } catch (ConnectException e) {
                     continue;
