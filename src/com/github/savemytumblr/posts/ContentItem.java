@@ -55,6 +55,10 @@ public abstract class ContentItem {
     static public ContentItem create(JSONObject contentItem)
             throws JSONException, com.github.savemytumblr.exception.RuntimeException {
         String type = contentItem.getString("type");
+        if (!typesMap.containsKey(type)) {
+            return null;
+        }
+
         try {
             return (ContentItem) typesMap.get(type).getMethod("doCreate", JSONObject.class).invoke(null, contentItem);
         } catch (InvocationTargetException | NoSuchMethodException | IllegalAccessException e) {

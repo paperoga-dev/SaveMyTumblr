@@ -91,7 +91,10 @@ public interface Post {
             this.content = new ArrayList<>();
             JSONArray content = postObject.getJSONArray("content");
             for (int i = 0; i < content.length(); ++i) {
-                this.content.add(ContentItem.create(content.getJSONObject(i)));
+                ContentItem newItem = ContentItem.create(content.getJSONObject(i));
+                if (newItem != null) {
+                    this.content.add(newItem);
+                }
             }
 
             this.layout = new ArrayList<>();
