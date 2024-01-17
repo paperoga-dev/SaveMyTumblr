@@ -230,7 +230,7 @@ public class Backup {
                 try {
                     Path fPath = mediaPath.resolve(Paths.get(new URI(sUrl).getPath()).getFileName());
 
-                    URL url = new URL(sUrl);
+                    URL url = URI.create(sUrl).toURL();
 
                     progress.log("=> Save media " + sUrl);
 

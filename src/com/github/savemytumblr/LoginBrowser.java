@@ -1,6 +1,7 @@
 package com.github.savemytumblr;
 
 import java.net.MalformedURLException;
+import java.net.URI;
 import java.net.URL;
 
 import org.eclipse.swt.SWT;
@@ -46,7 +47,7 @@ public class LoginBrowser extends Dialog {
                         return;
 
                     try {
-                        URL newUrl = new URL(arg0.location);
+                        URL newUrl = URI.create(arg0.location).toURL();
 
                         String[] tokens = newUrl.getQuery().split("&");
 
