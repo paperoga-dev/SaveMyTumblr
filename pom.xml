@@ -70,7 +70,7 @@
          <dependency>
             <groupId>org.eclipse.platform</groupId>
             <artifactId>${swt.artifactId}</artifactId>
-            <version>3.108.0</version>
+            <version>3.121.0</version>
             <optional>true</optional>
             <exclusions>
                <exclusion>
@@ -82,7 +82,7 @@
       </dependencies>
    </profile>
    <profile>
-      <id>swt-mac</id>
+      <id>swt-mac-intel</id>
       <activation>
          <os>
             <family>mac</family>
@@ -96,7 +96,33 @@
          <dependency>
             <groupId>org.eclipse.platform</groupId>
             <artifactId>${swt.artifactId}</artifactId>
-            <version>3.108.0</version>
+            <version>3.121.0</version>
+            <optional>true</optional>
+            <exclusions>
+               <exclusion>
+                  <groupId>org.eclipse.platform</groupId>
+                  <artifactId>org.eclipse.swt</artifactId>
+               </exclusion>
+            </exclusions>
+         </dependency>
+      </dependencies>
+   </profile>
+   <profile>
+      <id>swt-mac-arm</id>
+      <activation>
+         <os>
+            <family>mac</family>
+         </os>
+      </activation>
+      <properties>
+         <swt.artifactId>org.eclipse.swt.cocoa.macosx.aarch64</swt.artifactId>
+         <env>mac</env>
+      </properties>
+      <dependencies>
+         <dependency>
+            <groupId>org.eclipse.platform</groupId>
+            <artifactId>${swt.artifactId}</artifactId>
+            <version>3.121.0</version>
             <optional>true</optional>
             <exclusions>
                <exclusion>
@@ -122,7 +148,7 @@
          <dependency>
             <groupId>org.eclipse.platform</groupId>
             <artifactId>${swt.artifactId}</artifactId>
-            <version>3.108.0</version>
+            <version>3.121.0</version>
             <optional>true</optional>
             <exclusions>
                <exclusion>

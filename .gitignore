@@ -27,3 +27,4 @@ target/
 .settings/
 
 src/com/github/savemytumblr/Secrets.java
+.DS_Store
