@@ -18,29 +18,30 @@
 
 package com.github.savemytumblr.api.simple;
 
-import com.github.savemytumblr.api.Api;
+import java.util.Map;
+
 import com.github.savemytumblr.TumblrClient.Executor;
 import com.github.savemytumblr.TumblrClient.Logger;
-
-import org.scribe.model.OAuthRequest;
+import com.github.savemytumblr.api.Api;
+import com.github.savemytumblr.api.AuthInterface;
 
 public class TumblrCall<T> extends com.github.savemytumblr.api.TumblrCall<T> {
     private final CompletionInterface<T> onCompletion;
 
-    protected TumblrCall(Executor executor, Logger logger, Api<T> api, OAuthRequest request, CompletionInterface<T> onCompletion) {
-        super(executor, logger, api, request, onCompletion);
+    protected TumblrCall(Executor executor, Logger logger, Api<T> api, Map<String, String> queryParams,
+            AuthInterface authInterface, CompletionInterface<T> onCompletion) {
+        super(executor, logger, api, queryParams, authInterface, onCompletion);
 
         this.onCompletion = onCompletion;
     }
 
     @Override
     protected void process(final T output) {
-    	getExecutor().execute(
-                new Runnable() {
-                    @Override
-                    public void run() {
-                        onCompletion.onSuccess(output);
-                    }
-                });
+        getExecutor().execute(new Runnable() {
+            @Override
+            public void run() {
+                onCompletion.onSuccess(output);
+            }
+        });
     }
 }

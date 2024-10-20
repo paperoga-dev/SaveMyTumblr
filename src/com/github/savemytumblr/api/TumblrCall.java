@@ -18,33 +18,47 @@
 
 package com.github.savemytumblr.api;
 
+import java.io.IOException;
+import java.net.URI;
+import java.net.URLEncoder;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpRequest.BodyPublishers;
+import java.net.http.HttpResponse;
+import java.nio.charset.StandardCharsets;
+import java.util.Map;
+
 import org.json.JSONException;
 import org.json.JSONObject;
-import org.scribe.exceptions.OAuthException;
-import org.scribe.model.OAuthRequest;
 
+import com.github.savemytumblr.AccessToken;
+import com.github.savemytumblr.Constants;
 import com.github.savemytumblr.TumblrClient.Executor;
 import com.github.savemytumblr.TumblrClient.Logger;
 import com.github.savemytumblr.exception.JsonException;
 import com.github.savemytumblr.exception.NetworkException;
 import com.github.savemytumblr.exception.ResponseException;
 
+import io.github.cdimascio.dotenv.Dotenv;
+
 public abstract class TumblrCall<T> implements Runnable {
     private final AbstractCompletionInterface<T> onCompletion;
+    private final AuthInterface authInterface;
     private final Api<T> api;
-    private final OAuthRequest request;
+    private final Map<String, String> queryParams;
     private final Executor executor;
     private final Logger logger;
 
-    protected TumblrCall(Executor executor, Logger logger, Api<T> api, OAuthRequest request,
-            AbstractCompletionInterface<T> onCompletion) {
+    protected TumblrCall(Executor executor, Logger logger, Api<T> api, Map<String, String> queryParams,
+            AuthInterface authInterface, AbstractCompletionInterface<T> onCompletion) {
         super();
 
         this.api = api;
-        this.request = request;
         this.onCompletion = onCompletion;
+        this.queryParams = queryParams;
         this.executor = executor;
         this.logger = logger;
+        this.authInterface = authInterface;
     }
 
     protected abstract void process(final T output);
@@ -55,39 +69,98 @@ public abstract class TumblrCall<T> implements Runnable {
 
     @Override
     public void run() {
-        if (onCompletion == null)
+        if (onCompletion == null) {
             return;
-
-        logger.info("Request: " + request.toString());
-        logger.info("Query Params: " + request.getQueryStringParams().asFormUrlEncodedString());
-        logger.info("Headers: " + request.getHeaders().toString());
+        }
 
         String jsonResponse = null;
+        final TumblrCall<T> me = this;
 
         try {
-            jsonResponse = request.send().getBody();
-            logger.info("JSON Response: " + jsonResponse);
+            final HttpRequest.Builder requestBuilder = this.api.setupCall(queryParams);
+            requestBuilder.setHeader("User-Agent", authInterface.getUserAgent());
+            requestBuilder.setHeader("Authorization", "Bearer " + authInterface.getAccessToken().token);
 
-            JSONObject rootObj = new JSONObject(jsonResponse);
+            final HttpRequest request = requestBuilder.build();
 
-            JSONObject metaObj = rootObj.getJSONObject("meta");
-            final int responseCode = metaObj.getInt("status");
-            final String responseMessage = metaObj.getString("msg");
+            logger.info("Request: " + request.toString());
 
-            switch (responseCode) {
-            case 200:
-            case 201:
-                process(api.readData(rootObj.getJSONObject("response")));
-                break;
+            final HttpResponse<String> response = HttpClient.newHttpClient().send(request,
+                    HttpResponse.BodyHandlers.ofString());
 
-            default:
-                executor.execute(new Runnable() {
-                    @Override
-                    public void run() {
-                        onCompletion.onFailure(new ResponseException(responseCode, responseMessage));
-                    }
-                });
-                break;
+            logger.info("Response: " + String.valueOf(response.statusCode()));
+
+            switch (response.statusCode()) {
+                case 200:
+                case 201:
+                    final JSONObject rootObj = new JSONObject(response.body());
+
+                    logger.info("Response body: " + rootObj.toString(2));
+
+                    process(api.readData(rootObj.getJSONObject("response")));
+                    break;
+
+                case 401:
+                    executor.execute(new Runnable() {
+                        @Override
+                        public void run() {
+                            Dotenv dotenv = Dotenv.load();
+                            final HttpRequest request = HttpRequest.newBuilder()
+                                    .uri(URI.create(Constants.API_ENDPOINT + "/oauth2/token"))
+                                    .header("Content-Type", "application/x-www-form-urlencoded")
+                                    .header("User-Agent", authInterface.getUserAgent())
+                                    .POST(BodyPublishers.ofString("grant_type="
+                                            + URLEncoder.encode("refresh_token", StandardCharsets.UTF_8) + "&client_id="
+                                            + URLEncoder.encode(dotenv.get("CONSUMER_KEY"), StandardCharsets.UTF_8)
+                                            + "&client_secret="
+                                            + URLEncoder.encode(dotenv.get("CONSUMER_SECRET"), StandardCharsets.UTF_8)
+                                            + "&refresh_token="
+                                            + URLEncoder.encode(authInterface.getAccessToken().refreshToken,
+                                                    StandardCharsets.UTF_8)))
+                                    .build();
+
+                            HttpResponse<String> response;
+                            try {
+                                response = HttpClient.newHttpClient().send(request,
+                                        HttpResponse.BodyHandlers.ofString());
+                                switch (response.statusCode()) {
+                                    case 200:
+                                        JSONObject rootObj = new JSONObject(response.body());
+                                        authInterface.onUpdateToken(new AccessToken(rootObj.getString("access_token"),
+                                                rootObj.getString("refresh_token")));
+                                        executor.execute(new Runnable() {
+                                            @Override
+                                            public void run() {
+                                                me.run();
+                                            }
+                                        });
+                                        break;
+
+                                    default:
+                                        authInterface.onClearToken();
+                                        onCompletion.onFailure(new NetworkException(new Exception("Unauthenticated")));
+                                        break;
+                                }
+
+                            } catch (IOException e) {
+                                // TODO Auto-generated catch block
+                                e.printStackTrace();
+                            } catch (InterruptedException e) {
+                                // TODO Auto-generated catch block
+                                e.printStackTrace();
+                            }
+                        }
+                    });
+                    break;
+
+                default:
+                    executor.execute(new Runnable() {
+                        @Override
+                        public void run() {
+                            onCompletion.onFailure(new ResponseException(response.statusCode(), "Hey"));
+                        }
+                    });
+                    break;
             }
         } catch (final JSONException e) {
             e.printStackTrace();
@@ -100,15 +173,6 @@ public abstract class TumblrCall<T> implements Runnable {
                     onCompletion.onFailure(new JsonException(e, jsonData));
                 }
             });
-        } catch (final OAuthException e) {
-            e.printStackTrace();
-
-            executor.execute(new Runnable() {
-                @Override
-                public void run() {
-                    onCompletion.onFailure(new NetworkException(e));
-                }
-            });
         } catch (final com.github.savemytumblr.exception.RuntimeException e) {
             e.printStackTrace();
 
@@ -118,6 +182,12 @@ public abstract class TumblrCall<T> implements Runnable {
                     onCompletion.onFailure(e);
                 }
             });
+        } catch (IOException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        } catch (InterruptedException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
         }
     }
 }

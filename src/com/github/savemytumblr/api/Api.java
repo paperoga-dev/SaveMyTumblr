@@ -18,34 +18,21 @@
 
 package com.github.savemytumblr.api;
 
+import java.net.URI;
+import java.net.http.HttpRequest;
+import java.net.http.HttpRequest.Builder;
 import java.util.HashMap;
 import java.util.Map;
 
 import org.json.JSONException;
 import org.json.JSONObject;
-import org.scribe.model.OAuthRequest;
-import org.scribe.model.Token;
-import org.scribe.model.Verb;
-import org.scribe.oauth.OAuthService;
 
 import com.github.savemytumblr.Constants;
-import com.github.savemytumblr.Secrets;
+
+import io.github.cdimascio.dotenv.Dotenv;
+import io.mikael.urlbuilder.UrlBuilder;
 
 public abstract class Api<T> {
-
-    private final OAuthService service;
-    private final Token authToken;
-    private final String appId;
-    private final String appVersion;
-
-    protected Api(OAuthService service, Token authToken, String appId, String appVersion) {
-        super();
-
-        this.service = service;
-        this.authToken = authToken;
-        this.appId = appId;
-        this.appVersion = appVersion;
-    }
 
     protected boolean requiresApiKey() {
         return true;
@@ -56,8 +43,10 @@ public abstract class Api<T> {
     protected Map<String, String> defaultParams() {
         Map<String, String> m = new HashMap<>();
 
-        if (requiresApiKey())
-            m.put("api_key", Secrets.CONSUMER_KEY);
+        if (requiresApiKey()) {
+            Dotenv dotenv = Dotenv.load();
+            m.put("api_key", dotenv.get("CONSUMER_KEY"));
+        }
 
         return m;
     }
@@ -65,37 +54,19 @@ public abstract class Api<T> {
     protected abstract T readData(JSONObject jsonObject)
             throws JSONException, com.github.savemytumblr.exception.RuntimeException;
 
-    protected OAuthRequest setupCall(Map<String, ?> queryParams) {
-        OAuthRequest request = new OAuthRequest(Verb.GET, Constants.API_ENDPOINT + getPath());
+    protected Builder setupCall(Map<String, ?> queryParams) {
+        UrlBuilder url = UrlBuilder.fromString(Constants.API_ENDPOINT + getPath());
 
         for (Map.Entry<String, ?> entry : defaultParams().entrySet()) {
-            request.addQuerystringParameter(entry.getKey(), entry.getValue().toString());
+            url = url.addParameter(entry.getKey(), entry.getValue().toString());
         }
 
         for (Map.Entry<String, ?> entry : queryParams.entrySet()) {
-            request.addQuerystringParameter(entry.getKey(), entry.getValue().toString());
+            url = url.addParameter(entry.getKey(), entry.getValue().toString());
         }
 
-        request.addHeader("User-Agent", appId + "/" + appVersion);
+        String urlString = url.toString();
 
-        service.signRequest(authToken, request);
-
-        return request;
-    }
-
-    protected OAuthService getService() {
-        return service;
-    }
-
-    protected Token getAuthToken() {
-        return authToken;
-    }
-
-    protected String getAppId() {
-        return appId;
-    }
-
-    protected String getAppVersion() {
-        return appVersion;
+        return HttpRequest.newBuilder(URI.create(urlString));
     }
 }

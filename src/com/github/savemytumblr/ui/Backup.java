@@ -19,7 +19,6 @@ import org.eclipse.swt.widgets.ProgressBar;
 import org.eclipse.swt.widgets.TabFolder;
 import org.eclipse.swt.widgets.TabItem;
 import org.eclipse.swt.widgets.Text;
-import org.scribe.model.Token;
 
 import com.github.savemytumblr.LogText;
 import com.github.savemytumblr.LoginBrowser;
@@ -161,14 +160,14 @@ public class Backup extends TabItem {
             }
 
             @Override
-            public void onAccessRequest(Authenticate authenticator, Token requestToken, String authenticationUrl) {
+            public void onAccessRequest(Authenticate authenticator, String authenticationUrl, String state) {
                 getDisplay().asyncExec(new Runnable() {
                     @Override
                     public void run() {
-                        LoginBrowser lb = new LoginBrowser(parent.getShell());
-                        String authVerifier = lb.open(authenticationUrl);
+                        LoginBrowser lb = new LoginBrowser(state, parent.getShell());
+                        String authCode = lb.open(authenticationUrl);
 
-                        authenticator.verify(requestToken, authVerifier);
+                        authenticator.getAccessToken(authCode);
                     }
                 });
             }

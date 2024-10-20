@@ -18,10 +18,10 @@
 
 package com.github.savemytumblr.posts.media;
 
-import com.github.savemytumblr.posts.ContentItem;
-
 import org.json.JSONException;
 import org.json.JSONObject;
+
+import com.github.savemytumblr.posts.ContentItem;
 
 public class Media {
     private String url;
@@ -38,15 +38,9 @@ public class Media {
 
         this.url = mediaObject.getString("url");
         this.mimeType = mediaObject.optString("type", "");
-        this.originalDimensionsMissing = mediaObject.optBoolean(
-                "original_dimensions_missing",
-                false
-        );
+        this.originalDimensionsMissing = mediaObject.optBoolean("original_dimensions_missing", false);
         this.cropped = mediaObject.optBoolean("cropped", false);
-        this.hasOriginalDimensions = mediaObject.optBoolean(
-                "has_original_dimensions",
-                false
-        );
+        this.hasOriginalDimensions = mediaObject.optBoolean("has_original_dimensions", false);
         this.width = mediaObject.optInt("width", 0);
         this.height = mediaObject.optInt("height", 0);
         this.poster = ContentItem.allocateOrNothing(Media.class, mediaObject, "poster");

@@ -18,21 +18,11 @@
 
 package com.github.savemytumblr.blog.array;
 
-import org.scribe.model.Token;
-import org.scribe.oauth.OAuthService;
-
 public interface Submissions {
     class Api extends Posts.Api {
 
-        public Api(
-                OAuthService service,
-                Token authToken,
-                String appId,
-                String appVersion,
-                Integer offset,
-                Integer limit,
-                String blogId) {
-            super(service, authToken, appId, appVersion, offset, limit, blogId);
+        public Api(Integer offset, Integer limit, String blogId) {
+            super(offset, limit, blogId);
         }
 
         @Override

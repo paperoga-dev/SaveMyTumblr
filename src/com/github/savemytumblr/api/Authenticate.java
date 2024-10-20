@@ -1,138 +1,133 @@
-/*
- * SaveMyTumblr
- * Copyright (C) 2020
-
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
-
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
-
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- */
-
 package com.github.savemytumblr.api;
 
 import java.io.IOException;
 import java.io.OutputStream;
+import java.net.URI;
+import java.net.URLEncoder;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpRequest.BodyPublishers;
+import java.net.http.HttpResponse;
+import java.nio.charset.StandardCharsets;
+import java.util.UUID;
 
-import org.scribe.builder.ServiceBuilder;
-import org.scribe.exceptions.OAuthException;
-import org.scribe.model.Token;
-import org.scribe.model.Verifier;
-import org.scribe.oauth.OAuthService;
+import org.json.JSONObject;
 
+import com.github.savemytumblr.AccessToken;
 import com.github.savemytumblr.Constants;
-import com.github.savemytumblr.Secrets;
 import com.github.savemytumblr.TumblrClient.Executor;
 import com.github.savemytumblr.TumblrClient.Logger;
 
+import io.github.cdimascio.dotenv.Dotenv;
+import io.mikael.urlbuilder.UrlBuilder;
+
 public class Authenticate {
-
     public interface OnAuthenticationListener {
-        void onAuthenticationRequest(Authenticate authenticator, Token requestToken, String authenticationUrl);
+        void onAuthenticationRequest(String authenticationUrl, String state);
 
-        void onAuthenticationGranted(Token accessToken);
+        void onAuthenticationGranted(AccessToken accessToken);
 
-        void onFailure(OAuthException exception);
+        void onFailure(Exception e);
     }
 
-    private static class RequestTokenTask implements Runnable {
+    private static class AuthorizationRequestTask implements Runnable {
         private final Executor executor;
-        private final Logger logger;
-        private final Authenticate authenticator;
-        private final OAuthService oAuthService;
         private final OnAuthenticationListener onAuthenticationListener;
 
-        RequestTokenTask(Executor executor, Logger logger, Authenticate authenticator, OAuthService oAuthService,
-                OnAuthenticationListener onAuthenticationListener) {
+        AuthorizationRequestTask(Executor executor, OnAuthenticationListener onAuthenticationListener) {
             super();
 
             this.executor = executor;
-            this.logger = logger;
-            this.authenticator = authenticator;
-            this.oAuthService = oAuthService;
             this.onAuthenticationListener = onAuthenticationListener;
         }
 
         @Override
         public void run() {
-            if (onAuthenticationListener == null)
+            if (onAuthenticationListener == null) {
                 return;
-
-            try {
-                final Token requestToken = oAuthService.getRequestToken();
-                logger.info("Request Token: " + requestToken.toString());
-
-                final String authenticationUrl = oAuthService.getAuthorizationUrl(requestToken);
-                logger.info("Authentication URL: " + authenticationUrl);
-
-                executor.execute(new Runnable() {
-                    @Override
-                    public void run() {
-                        onAuthenticationListener.onAuthenticationRequest(authenticator, requestToken,
-                                authenticationUrl);
-                    }
-                });
-
-            } catch (final OAuthException e) {
-                e.printStackTrace();
-
-                executor.execute(new Runnable() {
-                    @Override
-                    public void run() {
-                        onAuthenticationListener.onFailure(e);
-                    }
-                });
             }
+
+            executor.execute(new Runnable() {
+                @Override
+                public void run() {
+                    final String state = UUID.randomUUID().toString();
+                    Dotenv dotenv = Dotenv.load();
+                    onAuthenticationListener.onAuthenticationRequest(UrlBuilder
+                            .fromString("https://www.tumblr.com/oauth2/authorize")
+                            .addParameter("client_id", dotenv.get("CONSUMER_KEY")).addParameter("response_type", "code")
+                            .addParameter("scope", "write offline_access").addParameter("state", state)
+                            .addParameter("redirect_uri", Constants.CALLBACK_URL).toString(), state);
+                }
+            });
         }
     }
 
-    private static class AccessTokenTask implements Runnable {
+    private static class GetAccessTokenTask implements Runnable {
         private final Executor executor;
-        private final Logger logger;
-        private final String authVerifier;
-        private final Token requestToken;
-        private final OAuthService oAuthService;
+        private final String authCode;
         private final OnAuthenticationListener onAuthenticationListener;
 
-        AccessTokenTask(Executor executor, Logger logger, String authVerifier, Token requestToken,
-                OAuthService oAuthService, OnAuthenticationListener onAuthenticationListener) {
+        GetAccessTokenTask(Executor executor, String authCode, OnAuthenticationListener onAuthenticationListener) {
             super();
 
             this.executor = executor;
-            this.logger = logger;
-            this.authVerifier = authVerifier;
-            this.requestToken = requestToken;
-            this.oAuthService = oAuthService;
+            this.authCode = authCode;
             this.onAuthenticationListener = onAuthenticationListener;
         }
 
         @Override
         public void run() {
-            if (onAuthenticationListener == null)
+            if (onAuthenticationListener == null) {
                 return;
+            }
 
             try {
-                final Token authToken = oAuthService.getAccessToken(requestToken, new Verifier(authVerifier));
-                logger.info("Access Token: " + authToken.toString());
-
                 executor.execute(new Runnable() {
                     @Override
                     public void run() {
-                        onAuthenticationListener.onAuthenticationGranted(authToken);
+                        try {
+                            Dotenv dotenv = Dotenv.load();
+                            HttpRequest request = HttpRequest.newBuilder()
+                                    .uri(URI.create(Constants.API_ENDPOINT + "/oauth2/token"))
+                                    .header("Content-Type", "application/x-www-form-urlencoded")
+                                    .POST(BodyPublishers.ofString("grant_type="
+                                            + URLEncoder.encode("authorization_code", StandardCharsets.UTF_8) + "&code="
+                                            + URLEncoder.encode(authCode, StandardCharsets.UTF_8) + "&client_id="
+                                            + URLEncoder.encode(dotenv.get("CONSUMER_KEY"), StandardCharsets.UTF_8)
+                                            + "&client_secret="
+                                            + URLEncoder.encode(dotenv.get("CONSUMER_SECRET"), StandardCharsets.UTF_8)
+                                            + "&redirect_uri="
+                                            + URLEncoder.encode(Constants.CALLBACK_URL, StandardCharsets.UTF_8)))
+                                    .build();
+
+                            HttpResponse<String> response = HttpClient.newHttpClient().send(request,
+                                    HttpResponse.BodyHandlers.ofString());
+                            AccessToken accessToken = null;
+                            if (response.statusCode() == 200) {
+                                JSONObject rootObj = new JSONObject(response.body());
+                                accessToken = new AccessToken(rootObj.getString("access_token"),
+                                        rootObj.getString("refresh_token"));
+                            }
+
+                            if (accessToken != null) {
+                                onAuthenticationListener.onAuthenticationGranted(accessToken);
+                            } else {
+                                onAuthenticationListener.onFailure(new Exception("Hey"));
+                            }
+                        } catch (Exception e) {
+                            onAuthenticationListener.onFailure(new Exception("Hey"));
+                            e.printStackTrace();
+                        }
                     }
                 });
 
-            } catch (final OAuthException e) {
+            } catch (
+
+            final Exception e) {
                 e.printStackTrace();
 
                 executor.execute(new Runnable() {
+
                     @Override
                     public void run() {
                         onAuthenticationListener.onFailure(e);
@@ -168,7 +163,6 @@ public class Authenticate {
         }
     }
 
-    private final OAuthService oAuthService;
     private OnAuthenticationListener onAuthenticationListener;
     private final Executor executor;
     private final Logger logger;
@@ -178,25 +172,20 @@ public class Authenticate {
 
         this.executor = executor;
         this.logger = logger;
-        this.oAuthService = new ServiceBuilder().apiKey(Secrets.CONSUMER_KEY).apiSecret(Secrets.CONSUMER_SECRET)
-                .provider(OAuthApi.class).callback(Constants.CALLBACK_URL).debugStream(new LogOutputStream(logger))
-                .build();
         this.onAuthenticationListener = null;
     }
 
     public void request() {
-        if (onAuthenticationListener == null)
+        if (onAuthenticationListener == null) {
             return;
+        }
 
-        executor.execute(new RequestTokenTask(executor, logger, this, oAuthService, onAuthenticationListener));
+        executor.execute(new AuthorizationRequestTask(executor, onAuthenticationListener));
     }
 
-    public void verify(Token requestToken, String authVerifier) {
-        logger.info("Verify: requestToken = " + requestToken.toString());
-        logger.info("Verify: authVerifier = " + authVerifier);
+    public void getAccessToken(String authCode) {
 
-        executor.execute(new AccessTokenTask(executor, logger, authVerifier, requestToken, oAuthService,
-                onAuthenticationListener));
+        executor.execute(new GetAccessTokenTask(executor, authCode, onAuthenticationListener));
     }
 
     public void setOnAuthenticationListener(OnAuthenticationListener onAuthenticationListener) {

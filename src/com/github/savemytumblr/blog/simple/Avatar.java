@@ -20,22 +20,17 @@ package com.github.savemytumblr.blog.simple;
 
 import org.json.JSONException;
 import org.json.JSONObject;
-import org.scribe.model.Token;
-import org.scribe.oauth.OAuthService;
 
 public interface Avatar {
     class Data {
         /*
-        {
-          "width": 512,
-          "height": 512
-          "url": "https://66.media.tumblr.com/avatar_ed354109bd89_512.png"
-        }
-        */
+         * { "width": 512, "height": 512 "url":
+         * "https://66.media.tumblr.com/avatar_ed354109bd89_512.png" }
+         */
 
-        private int width;   // Number - Avatar width
-        private int height;  // Number - Avatar height
-        private String url;  // String - Avatar url
+        private int width; // Number - Avatar width
+        private int height; // Number - Avatar height
+        private String url; // String - Avatar url
 
         Data(int size, String url) {
             this.width = size;
@@ -64,13 +59,8 @@ public interface Avatar {
 
     class Api extends Id<Data> {
 
-        public Api(
-                OAuthService service,
-                Token authToken,
-                String appId,
-                String appVersion,
-                String blogId) {
-            super(service, authToken, appId, appVersion, blogId);
+        public Api(String blogId) {
+            super(blogId);
         }
 
         @Override

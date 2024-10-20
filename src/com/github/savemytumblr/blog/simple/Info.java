@@ -18,24 +18,22 @@
 
 package com.github.savemytumblr.blog.simple;
 
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
-import org.scribe.model.Token;
-import org.scribe.oauth.OAuthService;
-
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+
 public interface Info {
 
     class Reference {
-        private String name;                      // String - Blog name
-        private String url;                       // String - Blog URL
-        private String uuid;                      // String - Blog UUID
+        private String name; // String - Blog name
+        private String url; // String - Blog URL
+        private String uuid; // String - Blog UUID
 
         public Reference(String brokenBlogName) {
             super();
@@ -67,9 +65,9 @@ public interface Info {
     }
 
     class Base extends Reference {
-        private String description;               // String - Blog description
-        private String title;                     // String - Blog title
-        private Date updated;                     // Number - Last updated time (epoch)
+        private String description; // String - Blog description
+        private String title; // String - Blog title
+        private Date updated; // Number - Last updated time (epoch)
 
         public Base(String brokenBlogName) {
             super(brokenBlogName);
@@ -102,11 +100,7 @@ public interface Info {
 
     class SubmissionTerms {
         public enum AcceptedTypes {
-            Text,
-            Photo,
-            Quote,
-            Link,
-            Video
+            Text, Photo, Quote, Link, Video
         }
 
         private Set<AcceptedTypes> acceptedTypes;
@@ -115,43 +109,34 @@ public interface Info {
         private String guidelines;
 
         /*
-        "submission_terms": {
-          "accepted_types":
-            [
-              "text",
-              "photo",
-              "quote",
-              "link",
-              "video"
-            ],
-          "tags":[
-            ],
-          "title": "Ecco, bravo, damme na' mano",
-          "guidelines": ""
-        },
-        */
+         * "submission_terms": { "accepted_types": [ "text", "photo", "quote", "link",
+         * "video" ], "tags":[ ], "title": "Ecco, bravo, damme na' mano", "guidelines":
+         * "" },
+         */
 
         SubmissionTerms(JSONObject jsonSubmissionTermsObject) throws JSONException {
             JSONArray acceptedTypes = jsonSubmissionTermsObject.getJSONArray("accepted_types");
 
             this.acceptedTypes = new HashSet<>();
             for (int i = 0; i < acceptedTypes.length(); ++i) {
-                if (acceptedTypes.getString(i).equalsIgnoreCase("text"))
+                if (acceptedTypes.getString(i).equalsIgnoreCase("text")) {
                     this.acceptedTypes.add(AcceptedTypes.Text);
-                else if (acceptedTypes.getString(i).equalsIgnoreCase("photo"))
+                } else if (acceptedTypes.getString(i).equalsIgnoreCase("photo")) {
                     this.acceptedTypes.add(AcceptedTypes.Photo);
-                else if (acceptedTypes.getString(i).equalsIgnoreCase("quote"))
+                } else if (acceptedTypes.getString(i).equalsIgnoreCase("quote")) {
                     this.acceptedTypes.add(AcceptedTypes.Quote);
-                else if (acceptedTypes.getString(i).equalsIgnoreCase("link"))
+                } else if (acceptedTypes.getString(i).equalsIgnoreCase("link")) {
                     this.acceptedTypes.add(AcceptedTypes.Link);
-                else if (acceptedTypes.getString(i).equalsIgnoreCase("video"))
+                } else if (acceptedTypes.getString(i).equalsIgnoreCase("video")) {
                     this.acceptedTypes.add(AcceptedTypes.Video);
+                }
             }
 
             JSONArray tags = jsonSubmissionTermsObject.getJSONArray("tags");
             this.tags = new HashSet<>();
-            for (int i = 0; i < tags.length(); ++i)
+            for (int i = 0; i < tags.length(); ++i) {
                 this.tags.add(tags.getString(i));
+            }
 
             this.title = jsonSubmissionTermsObject.getString("title");
             this.guidelines = jsonSubmissionTermsObject.getString("guidelines");
@@ -176,46 +161,44 @@ public interface Info {
 
     class Data extends Base {
         enum Type {
-            Public,
-            Private
+            Public, Private
         }
 
         enum Tweet {
-            Auto,
-            Yes,
-            No
+            Auto, Yes, No
         }
 
-        private boolean admin;                    // Boolean - is admin
-        private boolean ask;                      // Boolean - Indicates whether the blog allows questions
-        private boolean askAnon;                  // Boolean - Indicates whether the blog allows anonymous questions; returned only if ask is true
-        private String askPageTitle;              // String - Ask page title
-        private List<Avatar.Data> avatars;        // Array - List of available avatars
-        private boolean canChat;                  // Boolean - Allows chat
-        private boolean canSendFanMail;           // Boolean - ????
-        private boolean canSubmit;                // Boolean - Allows submissions
-        private boolean canSubscribe;             // Boolean - ????
-        private int drafts;                       // Number - Drafts count
-        private boolean facebook;                 // Boolean - Is to Facebook linked
+        private boolean admin; // Boolean - is admin
+        private boolean ask; // Boolean - Indicates whether the blog allows questions
+        private boolean askAnon; // Boolean - Indicates whether the blog allows anonymous questions; returned
+                                 // only if ask is true
+        private String askPageTitle; // String - Ask page title
+        private List<Avatar.Data> avatars; // Array - List of available avatars
+        private boolean canChat; // Boolean - Allows chat
+        private boolean canSendFanMail; // Boolean - ????
+        private boolean canSubmit; // Boolean - Allows submissions
+        private boolean canSubscribe; // Boolean - ????
+        private int drafts; // Number - Drafts count
+        private boolean facebook; // Boolean - Is to Facebook linked
         private boolean facebookOpengraphEnabled; // Boolean String - ????? (Y/N)
-        private boolean followed;                 // Boolean - ?????
-        private int followers;                    // Number - Followers count
-        private boolean isBlockedFromPrimary;     // Boolean - ????
-        private boolean isNSFW;                   // Boolean - NSFW blog
-        private int messages;                     // Number - Messages count;
-        private int posts;                        // Number - Posts count
-        private boolean primary;                  // Boolean - Is a primary blog
-        private int queue;                        // Number - Queued posts count
-        private boolean shareLikes;               // Boolean - ?????
-        private String submissionPageTitle;       // String - Submission page title
-        private SubmissionTerms submissionTerms;  // Submission Object => see above
-        private boolean subscribed;               // Boolean - ?????
+        private boolean followed; // Boolean - ?????
+        private int followers; // Number - Followers count
+        private boolean isBlockedFromPrimary; // Boolean - ????
+        private boolean isNSFW; // Boolean - NSFW blog
+        private int messages; // Number - Messages count;
+        private int posts; // Number - Posts count
+        private boolean primary; // Boolean - Is a primary blog
+        private int queue; // Number - Queued posts count
+        private boolean shareLikes; // Boolean - ?????
+        private String submissionPageTitle; // String - Submission page title
+        private SubmissionTerms submissionTerms; // Submission Object => see above
+        private boolean subscribed; // Boolean - ?????
         // There is a theme object here, we skip it, it's useless for our purposes
-        private int totalPosts;                   // Number - Posts count
-        private Tweet tweet;                      // String - indicate if posts are tweeted auto, Y, N
-        private boolean twitterEnabled;           // Boolean - ?????
-        private boolean twitterSend;              // Boolean - ????
-        private Type type;                        // String - indicates whether a blog is public or private
+        private int totalPosts; // Number - Posts count
+        private Tweet tweet; // String - indicate if posts are tweeted auto, Y, N
+        private boolean twitterEnabled; // Boolean - ?????
+        private boolean twitterSend; // Boolean - ????
+        private Type type; // String - indicates whether a blog is public or private
 
         public Data(JSONObject blogObject) throws JSONException {
             super(blogObject);
@@ -238,7 +221,8 @@ public interface Info {
             this.canSubscribe = blogObject.optBoolean("can_subscribe", false);
             this.drafts = blogObject.optInt("drafts", -1);
             this.facebook = blogObject.optString("facebook", "").equalsIgnoreCase("Y");
-            this.facebookOpengraphEnabled = blogObject.optString("facebook_opengraph_enabled", "").equalsIgnoreCase("Y");
+            this.facebookOpengraphEnabled = blogObject.optString("facebook_opengraph_enabled", "")
+                    .equalsIgnoreCase("Y");
             this.followed = blogObject.getBoolean("followed");
             this.followers = blogObject.optInt("followers", -1);
             this.isBlockedFromPrimary = blogObject.getBoolean("is_blocked_from_primary");
@@ -250,25 +234,27 @@ public interface Info {
             this.shareLikes = blogObject.getBoolean("share_likes");
             this.submissionPageTitle = blogObject.optString("submission_page_title", "");
             JSONObject submissionJSONObject = blogObject.optJSONObject("submission_terms");
-            this.submissionTerms = (submissionJSONObject != null)? new SubmissionTerms(submissionJSONObject) : null;
+            this.submissionTerms = (submissionJSONObject != null) ? new SubmissionTerms(submissionJSONObject) : null;
             this.subscribed = blogObject.getBoolean("subscribed");
             this.totalPosts = blogObject.getInt("total_posts");
 
             String tweet = blogObject.optString("tweet", "N");
-            if (tweet.equalsIgnoreCase("Auto"))
+            if (tweet.equalsIgnoreCase("Auto")) {
                 this.tweet = Tweet.Auto;
-            else if (tweet.equalsIgnoreCase("Y"))
+            } else if (tweet.equalsIgnoreCase("Y")) {
                 this.tweet = Tweet.Yes;
-            else
+            } else {
                 this.tweet = Tweet.No;
+            }
 
             this.twitterEnabled = blogObject.optBoolean("twitter_enabled", false);
             this.twitterSend = blogObject.optBoolean("twitter_send", false);
 
-            if (blogObject.optString("type", "public").equalsIgnoreCase("public"))
+            if (blogObject.optString("type", "public").equalsIgnoreCase("public")) {
                 this.type = Type.Public;
-            else
+            } else {
                 this.type = Type.Private;
+            }
         }
 
         public boolean isAdmin() {
@@ -391,63 +377,25 @@ public interface Info {
     class Api extends Id<Data> {
 
         /*
-        "response": {
-          "blog":
-            {
-              "admin": true,
-              "ask": true,
-              "ask_anon": true,
-              "ask_page_title": "Vediamo se la so",
-              "avatar": [
-                => Array of Avatars Object, see Avatar.Data
-              ],
-              "can_chat": true,
-              "can_send_fan_mail": true,
-              "can_submit": true,
-              "can_subscribe": false,
-              "description": "Anche un papero sa arrampicarsi su un albero se viene adulato",
-              "drafts": 0,
-              "facebook": "N",
-              "facebook_opengraph_enabled": "N",
-              "followed": false,
-              "followers": 261,
-              "is_blocked_from_primary": false,
-              "is_nsfw": false,
-              "messages": 0,
-              "name": "paperogacoibentato",
-              "posts": 791,
-              "primary": true,
-              "queue": 0,
-              "share_likes": false,
-              "submission_page_title": "Ecco, bravo, damme na' mano",
-              "submission_terms": {
-                => SubmissionTerms Object, see above
-                },
-              "subscribed": false,
-              "theme": {
-                => Theme data, we don't need it
-              },
-              "title": "Paperoga Coibentato",
-              "total_posts": 791,
-              "tweet": "N",
-              "twitter_enabled": false,
-              "twitter_send": false,
-              "type": "public",
-              "updated": 1582480880,
-              "url": "https:\/\/paperogacoibentato.tumblr.com\/",
-              "uuid": "t:4ZHKojAk25vVcuhziYcWLw",
-            }
-          }
-        }
-        */
+         * "response": { "blog": { "admin": true, "ask": true, "ask_anon": true,
+         * "ask_page_title": "Vediamo se la so", "avatar": [ => Array of Avatars Object,
+         * see Avatar.Data ], "can_chat": true, "can_send_fan_mail": true, "can_submit":
+         * true, "can_subscribe": false, "description":
+         * "Anche un papero sa arrampicarsi su un albero se viene adulato", "drafts": 0,
+         * "facebook": "N", "facebook_opengraph_enabled": "N", "followed": false,
+         * "followers": 261, "is_blocked_from_primary": false, "is_nsfw": false,
+         * "messages": 0, "name": "paperogacoibentato", "posts": 791, "primary": true,
+         * "queue": 0, "share_likes": false, "submission_page_title":
+         * "Ecco, bravo, damme na' mano", "submission_terms": { => SubmissionTerms
+         * Object, see above }, "subscribed": false, "theme": { => Theme data, we don't
+         * need it }, "title": "Paperoga Coibentato", "total_posts": 791, "tweet": "N",
+         * "twitter_enabled": false, "twitter_send": false, "type": "public", "updated":
+         * 1582480880, "url": "https:\/\/paperogacoibentato.tumblr.com\/", "uuid":
+         * "t:4ZHKojAk25vVcuhziYcWLw", } } }
+         */
 
-        public Api(
-                OAuthService service,
-                Token authToken,
-                String appId,
-                String appVersion,
-                String blogId) {
-            super(service, authToken, appId, appVersion, blogId);
+        public Api(String blogId) {
+            super(blogId);
         }
 
         @Override

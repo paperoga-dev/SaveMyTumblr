@@ -20,28 +20,18 @@ package com.github.savemytumblr.blog.simple;
 
 import com.github.savemytumblr.api.simple.Api;
 
-import org.scribe.model.Token;
-import org.scribe.oauth.OAuthService;
-
 public abstract class Id<T> extends Api<T> implements ApiInterface<T> {
     private final String blogId;
 
-    protected Id(
-            OAuthService service,
-            Token authToken,
-            String appId,
-            String appVersion,
-            String blogId) {
-        super(service, authToken, appId, appVersion);
-
+    protected Id(String blogId) {
         this.blogId = blogId;
     }
 
     @Override
     protected String getPath() {
         /*
-        blog-identifier  String  Any blog identifier
-        */
+         * blog-identifier String Any blog identifier
+         */
 
         return "/blog/" + getBlogId() + ".tumblr.com";
     }

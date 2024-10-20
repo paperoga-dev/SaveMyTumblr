@@ -27,7 +27,7 @@ import org.json.JSONObject;
 
 public abstract class LayoutItem {
 
-    private static final Map<String, Class<? extends LayoutItem>> typesMap = new HashMap<String, Class<? extends LayoutItem>>() {
+    private static final Map<String, Class<? extends LayoutItem>> typesMap = new HashMap<>() {
         private static final long serialVersionUID = 1L;
         {
             put("rows", com.github.savemytumblr.posts.layout.Rows.class);

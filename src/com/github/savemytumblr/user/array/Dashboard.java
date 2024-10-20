@@ -18,18 +18,16 @@
 
 package com.github.savemytumblr.user.array;
 
-import com.github.savemytumblr.api.array.ContentInterface;
-import com.github.savemytumblr.posts.Post;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
 
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
-import org.scribe.model.Token;
-import org.scribe.oauth.OAuthService;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
+import com.github.savemytumblr.api.array.ContentInterface;
+import com.github.savemytumblr.posts.Post;
 
 public interface Dashboard {
 
@@ -60,14 +58,8 @@ public interface Dashboard {
 
     class Api extends com.github.savemytumblr.api.array.Api<Post.Item, Data> {
 
-        public Api(
-                OAuthService service,
-                Token authToken,
-                String appId,
-                String appVersion,
-                Integer offset,
-                Integer limit) {
-            super(service, authToken, appId, appVersion, offset, limit);
+        public Api(Integer offset, Integer limit) {
+            super(offset, limit);
         }
 
         @Override
@@ -92,7 +84,8 @@ public interface Dashboard {
         }
 
         @Override
-        protected Data readData(JSONObject jsonObject) throws JSONException, com.github.savemytumblr.exception.RuntimeException {
+        protected Data readData(JSONObject jsonObject)
+                throws JSONException, com.github.savemytumblr.exception.RuntimeException {
             return new Data(jsonObject);
         }
     }

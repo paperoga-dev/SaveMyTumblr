@@ -18,11 +18,11 @@
 
 package com.github.savemytumblr.posts.attribution;
 
-import com.github.savemytumblr.posts.ContentItem;
-import com.github.savemytumblr.posts.media.Media;
-
 import org.json.JSONException;
 import org.json.JSONObject;
+
+import com.github.savemytumblr.posts.ContentItem;
+import com.github.savemytumblr.posts.media.Media;
 
 public class App extends Base {
     private String name;
@@ -49,7 +49,8 @@ public class App extends Base {
         return logo;
     }
 
-    public static Base doCreate(JSONObject attributionObject) throws JSONException, com.github.savemytumblr.exception.RuntimeException {
+    public static Base doCreate(JSONObject attributionObject)
+            throws JSONException, com.github.savemytumblr.exception.RuntimeException {
         return new App(attributionObject);
     }
 }

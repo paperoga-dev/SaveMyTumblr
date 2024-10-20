@@ -1,8 +1,6 @@
 package com.github.savemytumblr;
 
-import java.net.MalformedURLException;
-import java.net.URI;
-import java.net.URL;
+import java.util.ArrayList;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.SWTError;
@@ -15,11 +13,15 @@ import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.MessageBox;
 import org.eclipse.swt.widgets.Shell;
 
-public class LoginBrowser extends Dialog {
-    private String authVerifier;
+import io.mikael.urlbuilder.UrlBuilder;
 
-    public LoginBrowser(Shell parentShell) {
+public class LoginBrowser extends Dialog {
+    private String authCode;
+    final private String state;
+
+    public LoginBrowser(String state, Shell parentShell) {
         super(parentShell);
+        this.state = state;
     }
 
     public String open(String url) {
@@ -43,30 +45,23 @@ public class LoginBrowser extends Dialog {
 
                 @Override
                 public void changed(LocationEvent arg0) {
-                    if (!arg0.location.toLowerCase().contains(Constants.CALLBACK_URL.toLowerCase()))
-                        return;
-
-                    try {
-                        URL newUrl = URI.create(arg0.location).toURL();
-
-                        String[] tokens = newUrl.getQuery().split("&");
-
-                        for (String tok : tokens) {
-                            String[] tokI = tok.split("=");
-
-                            if (tokI[0].equalsIgnoreCase(Constants.OAUTH_VERIFIER)) {
-                                authVerifier = tokI[1];
-                            }
-                        }
-                    } catch (MalformedURLException e) {
-                        e.printStackTrace();
-                    }
-
-                    dialog.close();
                 }
 
                 @Override
                 public void changing(LocationEvent arg0) {
+                    if (!arg0.location.startsWith(Constants.CALLBACK_URL)) {
+                        arg0.doit = true;
+                        return;
+                    }
+
+                    final UrlBuilder url = UrlBuilder.fromString(arg0.location);
+
+                    if (url.queryParameters.getOrDefault("state", new ArrayList<>()).getFirst().equals(state)
+                            && url.queryParameters.containsKey("code")) {
+                        authCode = url.queryParameters.get("code").getFirst();
+                        arg0.doit = false;
+                        dialog.close();
+                    }
                 }
             });
 
@@ -76,11 +71,12 @@ public class LoginBrowser extends Dialog {
 
             Display display = parent.getDisplay();
             while (!dialog.isDisposed()) {
-                if (!display.readAndDispatch())
+                if (!display.readAndDispatch()) {
                     display.sleep();
+                }
             }
 
-            return authVerifier;
+            return authCode;
 
         } catch (SWTError e) {
             MessageBox messageBox = new MessageBox(dialog, SWT.ICON_ERROR | SWT.OK);

@@ -18,19 +18,17 @@
 
 package com.github.savemytumblr.exception;
 
-import org.scribe.exceptions.OAuthException;
-
 public class NetworkException extends BaseException {
-	private static final long serialVersionUID = 1L;
-	private final OAuthException e;
+    private static final long serialVersionUID = 1L;
+    private final Exception e;
 
-    public NetworkException(OAuthException e) {
+    public NetworkException(Exception e) {
         super(e.getMessage());
 
         this.e = e;
     }
 
-    public OAuthException getException() {
+    public Exception getException() {
         return e;
     }
 }

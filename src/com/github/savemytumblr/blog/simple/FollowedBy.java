@@ -20,19 +20,12 @@ package com.github.savemytumblr.blog.simple;
 
 import org.json.JSONException;
 import org.json.JSONObject;
-import org.scribe.model.Token;
-import org.scribe.oauth.OAuthService;
 
 public interface FollowedBy {
     class Api extends Id<Boolean> {
 
-        public Api(
-                OAuthService service,
-                Token authToken,
-                String appId,
-                String appVersion,
-                String blogId) {
-            super(service, authToken, appId, appVersion, blogId);
+        public Api(String blogId) {
+            super(blogId);
         }
 
         @Override

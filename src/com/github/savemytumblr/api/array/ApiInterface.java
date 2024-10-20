@@ -23,30 +23,20 @@ import java.util.Map;
 
 import com.github.savemytumblr.TumblrClient.Executor;
 import com.github.savemytumblr.TumblrClient.Logger;
+import com.github.savemytumblr.api.AuthInterface;
 
 public interface ApiInterface<T, W extends ContentInterface<T>> {
     /*
-     * Any class that implements this interface MUST have a public constructor with the
-     * following signature:
+     * Any class that implements this interface MUST have a public constructor with
+     * the following signature:
      *
-     * Class(OAuthService service,
-     *   Token authToken,
-     *   String appId,
-     *   String appVersion,
-     *   Integer offset,
-     *   Integer limit);
+     * Class(Integer offset, Integer limit);
      */
 
     int getLimit();
+
     int getOffset();
 
-    Runnable call(
-    		Executor executor,
-    		Logger logger,
-            List<T> container,
-            Map<String, String> queryParams,
-            int offset,
-            int limit,
-            CompletionInterface<T, W> onCompletion
-    );
+    Runnable call(Executor executor, Logger logger, List<T> container, Map<String, String> queryParams,
+            AuthInterface authInterface, int offset, int limit, CompletionInterface<T, W> onCompletion);
 }

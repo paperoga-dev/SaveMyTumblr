@@ -21,21 +21,11 @@ package com.github.savemytumblr.blog.array;
 import com.github.savemytumblr.api.array.Api;
 import com.github.savemytumblr.api.array.ContentInterface;
 
-import org.scribe.model.Token;
-import org.scribe.oauth.OAuthService;
-
 public abstract class Id<T, W extends ContentInterface<T>> extends Api<T, W> implements ApiInterface<T, W> {
     private final String blogId;
 
-    protected Id(
-            OAuthService service,
-            Token authToken,
-            String appId,
-            String appVersion,
-            Integer offset,
-            Integer limit,
-            String blogId) {
-        super(service, authToken, appId, appVersion, offset, limit);
+    protected Id(Integer offset, Integer limit, String blogId) {
+        super(offset, limit);
 
         this.blogId = blogId;
     }
@@ -43,8 +33,8 @@ public abstract class Id<T, W extends ContentInterface<T>> extends Api<T, W> imp
     @Override
     protected String getPath() {
         /*
-        blog-identifier  String  Any blog identifier
-        */
+         * blog-identifier String Any blog identifier
+         */
 
         return "/blog/" + getBlogId() + ".tumblr.com";
     }

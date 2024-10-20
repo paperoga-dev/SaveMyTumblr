@@ -18,14 +18,14 @@
 
 package com.github.savemytumblr.posts.layout;
 
-import com.github.savemytumblr.posts.LayoutItem;
+import java.util.ArrayList;
+import java.util.List;
 
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.util.ArrayList;
-import java.util.List;
+import com.github.savemytumblr.posts.LayoutItem;
 
 public class Condensed extends LayoutItem {
     private final List<Integer> blocks;

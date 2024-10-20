@@ -18,15 +18,15 @@
 
 package com.github.savemytumblr.posts.layout;
 
-import com.github.savemytumblr.posts.LayoutItem;
-import com.github.savemytumblr.posts.attribution.Base;
+import java.util.ArrayList;
+import java.util.List;
 
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.util.ArrayList;
-import java.util.List;
+import com.github.savemytumblr.posts.LayoutItem;
+import com.github.savemytumblr.posts.attribution.Base;
 
 public class Ask extends LayoutItem {
     private final List<Integer> blocks;
@@ -44,8 +44,9 @@ public class Ask extends LayoutItem {
 
         JSONObject attributionObject = layoutObject.optJSONObject("attribution");
         this.attribution = null;
-        if (attributionObject == null)
+        if (attributionObject == null) {
             return;
+        }
 
         this.attribution = Base.doCreate(attributionObject);
     }
@@ -58,7 +59,8 @@ public class Ask extends LayoutItem {
         return attribution;
     }
 
-    public static LayoutItem doCreate(JSONObject layoutObject) throws JSONException, com.github.savemytumblr.exception.RuntimeException {
+    public static LayoutItem doCreate(JSONObject layoutObject)
+            throws JSONException, com.github.savemytumblr.exception.RuntimeException {
         return new Ask(layoutObject);
     }
 }

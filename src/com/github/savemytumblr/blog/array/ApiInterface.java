@@ -20,18 +20,13 @@ package com.github.savemytumblr.blog.array;
 
 import com.github.savemytumblr.api.array.ContentInterface;
 
-public interface ApiInterface<T, W extends ContentInterface<T>> extends com.github.savemytumblr.api.array.ApiInterface<T, W> {
+public interface ApiInterface<T, W extends ContentInterface<T>>
+        extends com.github.savemytumblr.api.array.ApiInterface<T, W> {
     /*
-     * Any class that implements this interface MUST have a public constructor with the
-     * following signature:
+     * Any class that implements this interface MUST have a public constructor with
+     * the following signature:
      *
-     * Class(OAuthService service,
-     *   Token authToken,
-     *   String appId,
-     *   String appVersion,
-     *   Integer offset,
-     *   Integer limit,
-     *   String blogId);
+     * Class(Integer offset, Integer limit, String blogId);
      */
 
     String getBlogId();

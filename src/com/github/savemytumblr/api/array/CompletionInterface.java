@@ -18,9 +18,9 @@
 
 package com.github.savemytumblr.api.array;
 
-import com.github.savemytumblr.api.AbstractCompletionInterface;
-
 import java.util.List;
+
+import com.github.savemytumblr.api.AbstractCompletionInterface;
 
 public interface CompletionInterface<T, W extends ContentInterface<T>> extends AbstractCompletionInterface<W> {
     void onSuccess(List<T> result, int offset, int limit, int count);

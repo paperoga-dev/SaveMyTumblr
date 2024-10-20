@@ -18,17 +18,19 @@
 
 package com.github.savemytumblr.api.array;
 
-import org.scribe.model.OAuthRequest;
+import java.util.Map;
 
 import com.github.savemytumblr.TumblrClient.Executor;
 import com.github.savemytumblr.TumblrClient.Logger;
+import com.github.savemytumblr.api.AuthInterface;
 
 public class TumblrCall<T, W extends ContentInterface<T>> extends com.github.savemytumblr.api.TumblrCall<W> {
     private final CompletionInterface<T, W> onCompletion;
     private final Api<T, W> api;
 
-    protected TumblrCall(Executor executor, Logger logger, Api<T, W> api, OAuthRequest request, CompletionInterface<T, W> onCompletion) {
-        super(executor, logger, api, request, onCompletion);
+    protected TumblrCall(Executor executor, Logger logger, Api<T, W> api, Map<String, String> queryParams,
+            AuthInterface authInterface, CompletionInterface<T, W> onCompletion) {
+        super(executor, logger, api, queryParams, authInterface, onCompletion);
 
         this.api = api;
         this.onCompletion = onCompletion;
@@ -36,17 +38,11 @@ public class TumblrCall<T, W extends ContentInterface<T>> extends com.github.sav
 
     @Override
     protected void process(final W output) {
-    	getExecutor().execute(
-                new Runnable() {
-                    @Override
-                    public void run() {
-                        onCompletion.onSuccess(
-                                output.getItems(),
-                                api.getOffset(),
-                                api.getLimit(),
-                                output.getCount()
-                        );
-                    }
-                });
+        getExecutor().execute(new Runnable() {
+            @Override
+            public void run() {
+                onCompletion.onSuccess(output.getItems(), api.getOffset(), api.getLimit(), output.getCount());
+            }
+        });
     }
 }

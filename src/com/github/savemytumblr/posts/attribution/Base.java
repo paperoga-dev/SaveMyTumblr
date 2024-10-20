@@ -28,7 +28,7 @@ import org.json.JSONObject;
 public class Base {
     private String url;
 
-    private static final Map<String, Class<? extends Base>> typesMap = new HashMap<String, Class<? extends Base>>() {
+    private static final Map<String, Class<? extends Base>> typesMap = new HashMap<>() {
         private static final long serialVersionUID = 1L;
         {
             put("link", com.github.savemytumblr.posts.attribution.Link.class);
@@ -50,8 +50,9 @@ public class Base {
 
     public static Base doCreate(JSONObject attributionObject)
             throws JSONException, com.github.savemytumblr.exception.RuntimeException {
-        if (attributionObject == null)
+        if (attributionObject == null) {
             return null;
+        }
 
         String attributionType = attributionObject.getString("type");
         try {

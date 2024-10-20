@@ -18,10 +18,10 @@
 
 package com.github.savemytumblr.posts.attribution;
 
-import com.github.savemytumblr.blog.simple.Info;
-
 import org.json.JSONException;
 import org.json.JSONObject;
+
+import com.github.savemytumblr.blog.simple.Info;
 
 public class Blog extends Base {
     private Info.Base blog;

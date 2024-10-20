@@ -19,8 +19,8 @@
 package com.github.savemytumblr.exception;
 
 public class ResponseException extends BaseException {
-	private static final long serialVersionUID = 1L;
-	private final int responseCode;
+    private static final long serialVersionUID = 1L;
+    private final int responseCode;
     private final String responseMessage;
 
     public ResponseException(int responseCode, String responseMessage) {

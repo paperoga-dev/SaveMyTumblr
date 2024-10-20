@@ -20,14 +20,10 @@ package com.github.savemytumblr.blog.simple;
 
 public interface ApiInterface<T> extends com.github.savemytumblr.api.simple.ApiInterface<T> {
     /*
-     * Any class that implements this interface MUST have a public constructor with the
-     * following signature:
+     * Any class that implements this interface MUST have a public constructor with
+     * the following signature:
      *
-     * Class(OAuthService service,
-     *   Token authToken,
-     *   String appId,
-     *   String appVersion,
-     *   String blogId);
+     * Class(String blogId);
      */
 
     String getBlogId();

@@ -18,28 +18,25 @@
 
 package com.github.savemytumblr.user.simple;
 
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
-import org.scribe.model.Token;
-import org.scribe.oauth.OAuthService;
-
 import java.util.ArrayList;
 import java.util.List;
 
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+
 public interface Info {
     enum PostFormat {
-        Html,
-        MarkDown,
-        Raw
+        Html, MarkDown, Raw
     }
 
     class Data {
-        private String name;                  // String - The user's tumblr short name
-        private int likes;                    // Number - The total count of the user's likes
-        private int following;                // Number - The number of blogs the user is following
+        private String name; // String - The user's tumblr short name
+        private int likes; // Number - The total count of the user's likes
+        private int following; // Number - The number of blogs the user is following
         private PostFormat defaultPostFormat; // String - The default posting format - html, markdown, or raw
-        private List<com.github.savemytumblr.blog.simple.Info.Data> blogs;    // Array - Each item is a blog the user has permissions to post to
+        private List<com.github.savemytumblr.blog.simple.Info.Data> blogs; // Array - Each item is a blog the user has
+                                                                           // permissions to post to
 
         Data(JSONObject userObject) throws JSONException {
             this.name = userObject.getString("name");
@@ -86,26 +83,10 @@ public interface Info {
     class Api extends com.github.savemytumblr.api.simple.Api<Data> {
 
         /*
-        "response": {
-          "user": {
-            "name": "paperogacoibentato",
-            "likes": 8300,
-            "following": 175,
-            "default_post_format": "html",
-            "blogs": [
-                  => View BlogInfo.Data
-               ]
-           }
-        }
-        */
-
-        public Api(
-                OAuthService service,
-                Token authToken,
-                String appId,
-                String appVersion) {
-            super(service, authToken, appId, appVersion);
-        }
+         * "response": { "user": { "name": "paperogacoibentato", "likes": 8300,
+         * "following": 175, "default_post_format": "html", "blogs": [ => View
+         * BlogInfo.Data ] } }
+         */
 
         @Override
         protected String getPath() {

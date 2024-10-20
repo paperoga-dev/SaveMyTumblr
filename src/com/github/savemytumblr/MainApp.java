@@ -30,8 +30,9 @@ public class MainApp {
         shell.open();
 
         while (shell != null && !shell.isDisposed()) {
-            if (!display.readAndDispatch())
+            if (!display.readAndDispatch()) {
                 display.sleep();
+            }
         }
 
         executor.shutdown();

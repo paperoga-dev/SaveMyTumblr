@@ -22,17 +22,16 @@ import java.util.Map;
 
 import com.github.savemytumblr.TumblrClient.Executor;
 import com.github.savemytumblr.TumblrClient.Logger;
+import com.github.savemytumblr.api.AuthInterface;
 
 public interface ApiInterface<T> {
     /*
-     * Any class that implements this interface MUST have a public constructor with the
-     * following signature:
+     * Any class that implements this interface MUST have a public constructor with
+     * the following signature:
      *
-     * Class(OAuthService service,
-     *   Token authToken,
-     *   String appId,
-     *   String appVersion);
-    */
+     * Class();
+     */
 
-    Runnable call(Executor executor, Logger logger, Map<String, String> queryParams, CompletionInterface<T> onCompletion);
+    Runnable call(Executor executor, Logger logger, Map<String, String> queryParams, AuthInterface authInterface,
+            CompletionInterface<T> onCompletion);
 }

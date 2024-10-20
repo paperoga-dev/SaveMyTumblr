@@ -9,6 +9,7 @@ public class LogText extends Text {
 
     public LogText(Composite parent) {
         super(parent, SWT.MULTI | SWT.BORDER | SWT.WRAP | SWT.READ_ONLY | SWT.V_SCROLL);
+
         this.lines = 0;
     }
 

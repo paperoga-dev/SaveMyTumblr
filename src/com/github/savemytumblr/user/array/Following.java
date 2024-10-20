@@ -18,21 +18,18 @@
 
 package com.github.savemytumblr.user.array;
 
-import com.github.savemytumblr.api.array.ContentInterface;
-import com.github.savemytumblr.blog.simple.Info;
+import java.util.ArrayList;
+import java.util.List;
 
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
-import org.scribe.model.Token;
-import org.scribe.oauth.OAuthService;
 
-import java.util.ArrayList;
-import java.util.List;
+import com.github.savemytumblr.api.array.ContentInterface;
+import com.github.savemytumblr.blog.simple.Info;
 
 public interface Following {
-    class Data implements ContentInterface<Info.Base>
-    {
+    class Data implements ContentInterface<Info.Base> {
         private List<Info.Base> blogs;
         private int totalBlogs;
 
@@ -43,8 +40,9 @@ public interface Following {
 
             this.blogs = new ArrayList<>();
             JSONArray blogs = followingObject.getJSONArray("blogs");
-            for (int i = 0; i < blogs.length(); ++i)
+            for (int i = 0; i < blogs.length(); ++i) {
                 this.blogs.add(new Info.Base(blogs.getJSONObject(i)));
+            }
         }
 
         @Override
@@ -60,14 +58,8 @@ public interface Following {
 
     class Api extends com.github.savemytumblr.api.array.Api<Info.Base, Data> {
 
-        public Api(
-                OAuthService service,
-                Token authToken,
-                String appId,
-                String appVersion,
-                Integer offset,
-                Integer limit) {
-            super(service, authToken, appId, appVersion, offset, limit);
+        public Api(Integer offset, Integer limit) {
+            super(offset, limit);
         }
 
         @Override

@@ -22,5 +22,6 @@ import java.util.List;
 
 public interface ContentInterface<T> {
     int getCount();
+
     List<T> getItems();
 }

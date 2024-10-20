@@ -18,27 +18,19 @@
 
 package com.github.savemytumblr.api.array;
 
-import org.scribe.model.Token;
-import org.scribe.oauth.OAuthService;
-
-import com.github.savemytumblr.TumblrClient.Executor;
-import com.github.savemytumblr.TumblrClient.Logger;
-
 import java.util.List;
 import java.util.Map;
 
-public abstract class Api<T, W extends ContentInterface<T>> extends com.github.savemytumblr.api.Api<W> implements ApiInterface<T, W> {
+import com.github.savemytumblr.TumblrClient.Executor;
+import com.github.savemytumblr.TumblrClient.Logger;
+import com.github.savemytumblr.api.AuthInterface;
+
+public abstract class Api<T, W extends ContentInterface<T>> extends com.github.savemytumblr.api.Api<W>
+        implements ApiInterface<T, W> {
     private final Integer offset;
     private final Integer limit;
 
-    protected Api(OAuthService service,
-                  Token authToken,
-                  String appId,
-                  String appVersion,
-                  Integer offset,
-                  Integer limit) {
-        super(service, authToken, appId, appVersion);
-
+    protected Api(Integer offset, Integer limit) {
         this.offset = offset;
         this.limit = limit;
     }
@@ -54,22 +46,16 @@ public abstract class Api<T, W extends ContentInterface<T>> extends com.github.s
     }
 
     @Override
-    public Runnable call(
-    		Executor executor,
-    		Logger logger, 
-            List<T> container,
-            Map<String, String> queryParams,
-            int offset,
-            int limit,
-            CompletionInterface<T, W> onCompletion) {
+    public Runnable call(Executor executor, Logger logger, List<T> container, Map<String, String> queryParams,
+            AuthInterface authInterface, int offset, int limit, CompletionInterface<T, W> onCompletion) {
         /*
-        limit            Number  The number of results to return: 1–20, inclusive  default: 20
-        offset           Number  Result to start at                                default: 0
-        */
+         * limit Number The number of results to return: 1–20, inclusive default: 20
+         * offset Number Result to start at default: 0
+         */
 
         queryParams.put("limit", String.valueOf(limit));
         queryParams.put("offset", String.valueOf(offset));
 
-        return new TumblrCall<>(executor, logger, this, setupCall(queryParams), onCompletion);
+        return new TumblrCall<>(executor, logger, this, queryParams, authInterface, onCompletion);
     }
 }

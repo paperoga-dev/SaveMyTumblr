@@ -18,25 +18,17 @@
 
 package com.github.savemytumblr.api.simple;
 
-import org.scribe.model.Token;
-import org.scribe.oauth.OAuthService;
+import java.util.Map;
 
 import com.github.savemytumblr.TumblrClient.Executor;
 import com.github.savemytumblr.TumblrClient.Logger;
-
-import java.util.Map;
+import com.github.savemytumblr.api.AuthInterface;
 
 public abstract class Api<T> extends com.github.savemytumblr.api.Api<T> implements ApiInterface<T> {
 
-    protected Api(OAuthService service,
-                  Token authToken,
-                  String appId,
-                  String appVersion) {
-        super(service, authToken, appId, appVersion);
-    }
-
     @Override
-    public Runnable call(Executor executor, Logger logger, Map<String, String> queryParams, CompletionInterface<T> onCompletion) {
-        return new TumblrCall<>(executor, logger, this, setupCall(queryParams), onCompletion);
+    public Runnable call(Executor executor, Logger logger, Map<String, String> queryParams, AuthInterface authInterface,
+            CompletionInterface<T> onCompletion) {
+        return new TumblrCall<>(executor, logger, this, queryParams, authInterface, onCompletion);
     }
 }

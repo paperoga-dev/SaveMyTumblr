@@ -18,27 +18,18 @@
 
 package com.github.savemytumblr.blog.array;
 
+import java.util.Map;
+
 import org.json.JSONException;
 import org.json.JSONObject;
-import org.scribe.model.Token;
-import org.scribe.oauth.OAuthService;
 
 import com.github.savemytumblr.posts.Post;
-
-import java.util.Map;
 
 public interface Posts {
     class Api extends Id<Post.Item, Post.Data> {
 
-        public Api(
-                OAuthService service,
-                Token authToken,
-                String appId,
-                String appVersion,
-                Integer offset,
-                Integer limit,
-                String blogId) {
-            super(service, authToken, appId, appVersion, offset, limit, blogId);
+        public Api(Integer offset, Integer limit, String blogId) {
+            super(offset, limit, blogId);
         }
 
         @Override
@@ -56,7 +47,8 @@ public interface Posts {
         }
 
         @Override
-        protected Post.Data readData(JSONObject jsonObject) throws JSONException, com.github.savemytumblr.exception.RuntimeException {
+        protected Post.Data readData(JSONObject jsonObject)
+                throws JSONException, com.github.savemytumblr.exception.RuntimeException {
             return new Post.Data(jsonObject);
         }
     }

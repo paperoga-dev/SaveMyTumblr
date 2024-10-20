@@ -25,6 +25,5 @@ hs_err_pid*
 bin/
 target/
 .settings/
-
-src/com/github/savemytumblr/Secrets.java
+.env
 .DS_Store

@@ -18,19 +18,18 @@
 
 package com.github.savemytumblr.posts.layout;
 
-import com.github.savemytumblr.posts.LayoutItem;
+import java.util.ArrayList;
+import java.util.List;
 
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.util.ArrayList;
-import java.util.List;
+import com.github.savemytumblr.posts.LayoutItem;
 
 public class Rows extends LayoutItem {
     enum Type {
-        Plain,
-        Carousel
+        Plain, Carousel
     }
 
     public static class Blocks {
@@ -49,8 +48,9 @@ public class Rows extends LayoutItem {
 
             this.type = Type.Plain;
             JSONObject mode = blockObject.optJSONObject("mode");
-            if ((mode != null) && mode.optString("type", "").equalsIgnoreCase("carousel"))
+            if ((mode != null) && mode.optString("type", "").equalsIgnoreCase("carousel")) {
                 this.type = Type.Carousel;
+            }
         }
 
         public List<Integer> getIndexes() {

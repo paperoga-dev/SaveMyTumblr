@@ -154,8 +154,9 @@ public interface Post {
         public List<List<Integer>> getBlocksLayout() {
             SortedSet<Integer> indexes = new TreeSet<>();
 
-            for (int i = 0; i < getContent().size(); ++i)
+            for (int i = 0; i < getContent().size(); ++i) {
                 indexes.add(i);
+            }
 
             ArrayList<List<Integer>> list = new ArrayList<>();
 
@@ -201,10 +202,10 @@ public interface Post {
 
             res += "<b>" + getBlog().getName() + "</b><br><br>";
 
-            Set<Integer> askPos = new HashSet<Integer>();
-            for (int i = 0; i < getLayout().size(); ++i) {
-                if (getLayout().get(i) instanceof Ask) {
-                    askPos.addAll(((Ask) getLayout().get(i)).getBlocks());
+            Set<Integer> askPos = new HashSet<>();
+            for (LayoutItem element : getLayout()) {
+                if (element instanceof Ask) {
+                    askPos.addAll(((Ask) element).getBlocks());
                 }
             }
 

@@ -110,11 +110,7 @@ public class Converter extends TabItem {
                                         throws IOException {
                                     String[] fileParts = file.getFileName().toString().split("\\.");
 
-                                    if (fileParts.length != 2) {
-                                        return FileVisitResult.CONTINUE;
-                                    }
-
-                                    if (!fileParts[1].equalsIgnoreCase("json")) {
+                                    if ((fileParts.length != 2) || !fileParts[1].equalsIgnoreCase("json")) {
                                         return FileVisitResult.CONTINUE;
                                     }
 
@@ -137,7 +133,7 @@ public class Converter extends TabItem {
 
                                         writer.write(new com.github.savemytumblr.posts.Post.Item(
                                                 new JSONObject(Files.readString(file, StandardCharsets.UTF_8)))
-                                                        .toHTML(file.getParent().toString(), fileParts[0]).toString());
+                                                .toHTML(file.getParent().toString(), fileParts[0]).toString());
                                         writer.close();
 
                                         ++okPosts;

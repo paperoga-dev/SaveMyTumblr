@@ -21,8 +21,8 @@ package com.github.savemytumblr.exception;
 import org.json.JSONException;
 
 public class JsonException extends BaseException {
-	private static final long serialVersionUID = 1L;
-	private final JSONException e;
+    private static final long serialVersionUID = 1L;
+    private final JSONException e;
     private final String jsonData;
 
     public JsonException(JSONException e, String jsonData) {

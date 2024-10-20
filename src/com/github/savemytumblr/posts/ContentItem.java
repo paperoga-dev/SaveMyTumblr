@@ -27,7 +27,7 @@ import org.json.JSONObject;
 
 public abstract class ContentItem {
 
-    private static final Map<String, Class<? extends ContentItem>> typesMap = new HashMap<String, Class<? extends ContentItem>>() {
+    private static final Map<String, Class<? extends ContentItem>> typesMap = new HashMap<>() {
         private static final long serialVersionUID = 1L;
         {
             put("text", com.github.savemytumblr.posts.text.Base.class);

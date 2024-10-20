@@ -18,14 +18,12 @@
 
 package com.github.savemytumblr.blog.array;
 
-import com.github.savemytumblr.api.array.ContentInterface;
+import java.util.List;
 
 import org.json.JSONException;
 import org.json.JSONObject;
-import org.scribe.model.Token;
-import org.scribe.oauth.OAuthService;
 
-import java.util.List;
+import com.github.savemytumblr.api.array.ContentInterface;
 
 public interface Likes {
     class Post {
@@ -57,15 +55,8 @@ public interface Likes {
 
     class Api extends Id<Post, Data> {
 
-        public Api(
-                OAuthService service,
-                Token authToken,
-                String appId,
-                String appVersion,
-                Integer offset,
-                Integer limit,
-                String blogId) {
-            super(service, authToken, appId, appVersion, offset, limit, blogId);
+        public Api(Integer offset, Integer limit, String blogId) {
+            super(offset, limit, blogId);
         }
 
         @Override

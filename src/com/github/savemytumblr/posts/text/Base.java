@@ -35,7 +35,7 @@ public abstract class Base extends ContentItem {
     private List<com.github.savemytumblr.posts.text.formatting.Base> formattingItems;
     private static int orderedListCounter = 0;
 
-    private static final Map<String, Class<? extends com.github.savemytumblr.posts.text.formatting.Base>> formattingTypesMap = new HashMap<String, Class<? extends com.github.savemytumblr.posts.text.formatting.Base>>() {
+    private static final Map<String, Class<? extends com.github.savemytumblr.posts.text.formatting.Base>> formattingTypesMap = new HashMap<>() {
         private static final long serialVersionUID = 1L;
         {
             put("bold", com.github.savemytumblr.posts.text.formatting.Bold.class);
@@ -48,7 +48,7 @@ public abstract class Base extends ContentItem {
         }
     };
 
-    private static final Map<String, Class<? extends com.github.savemytumblr.posts.text.Base>> typesMap = new HashMap<String, Class<? extends com.github.savemytumblr.posts.text.Base>>() {
+    private static final Map<String, Class<? extends com.github.savemytumblr.posts.text.Base>> typesMap = new HashMap<>() {
         private static final long serialVersionUID = 1L;
         {
             put("plain", com.github.savemytumblr.posts.text.Plain.class);
@@ -70,8 +70,9 @@ public abstract class Base extends ContentItem {
 
         this.formattingItems = new ArrayList<>();
         JSONArray formattingItems = textObject.optJSONArray("formatting");
-        if (formattingItems == null)
+        if (formattingItems == null) {
             return;
+        }
 
         for (int i = 0; i < formattingItems.length(); ++i) {
             JSONObject formattingItem = formattingItems.getJSONObject(i);
@@ -93,10 +94,11 @@ public abstract class Base extends ContentItem {
         String subType = textObject.optString("subtype", "plain");
 
         try {
-            if (subType.equalsIgnoreCase("ordered-list-item"))
+            if (subType.equalsIgnoreCase("ordered-list-item")) {
                 ++orderedListCounter;
-            else
+            } else {
                 orderedListCounter = 0;
+            }
 
             return typesMap.get(subType).getDeclaredConstructor(JSONObject.class).newInstance(textObject);
         } catch (InstantiationException | InvocationTargetException | NoSuchMethodException
@@ -119,7 +121,7 @@ public abstract class Base extends ContentItem {
         String src = getText();
         String res = "";
 
-        List<com.github.savemytumblr.posts.text.formatting.Base> pItems = new ArrayList<com.github.savemytumblr.posts.text.formatting.Base>();
+        List<com.github.savemytumblr.posts.text.formatting.Base> pItems = new ArrayList<>();
 
         for (int i = 0; i < src.length(); ++i) {
 

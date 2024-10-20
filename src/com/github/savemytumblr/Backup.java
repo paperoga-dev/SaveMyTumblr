@@ -4,6 +4,7 @@ import java.io.BufferedWriter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.ConnectException;
+import java.net.HttpURLConnection;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
@@ -239,7 +240,7 @@ public class Backup {
                             "Mozilla/5.0 (Windows NT 6.1; Win64; x64; rv:56.0) Gecko/20100101 Firefox/56.0");
                     httpConn.addRequestProperty("Accept", req);
 
-                    if (httpConn.getResponseCode() == HttpsURLConnection.HTTP_OK) {
+                    if (httpConn.getResponseCode() == HttpURLConnection.HTTP_OK) {
                         InputStream inputStream = httpConn.getInputStream();
                         Files.copy(inputStream, fPath, StandardCopyOption.REPLACE_EXISTING);
                         inputStream.close();
@@ -519,8 +520,9 @@ public class Backup {
     }
 
     public void start() {
-        if (isRunning())
+        if (isRunning()) {
             return;
+        }
 
         try {
             JSONObject jsonRoot = new JSONObject(
@@ -559,8 +561,9 @@ public class Backup {
     }
 
     public void stop() {
-        if (!isRunning())
+        if (!isRunning()) {
             return;
+        }
 
         terminate.set(true);
         joinThread(esTC);
