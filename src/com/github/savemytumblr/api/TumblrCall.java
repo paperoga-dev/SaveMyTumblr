@@ -20,12 +20,10 @@ package com.github.savemytumblr.api;
 
 import java.io.IOException;
 import java.net.URI;
-import java.net.URLEncoder;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpRequest.BodyPublishers;
 import java.net.http.HttpResponse;
-import java.nio.charset.StandardCharsets;
 import java.util.Map;
 
 import org.json.JSONException;
@@ -35,6 +33,7 @@ import com.github.savemytumblr.AccessToken;
 import com.github.savemytumblr.Constants;
 import com.github.savemytumblr.TumblrClient.Executor;
 import com.github.savemytumblr.TumblrClient.Logger;
+import com.github.savemytumblr.Url;
 import com.github.savemytumblr.exception.JsonException;
 import com.github.savemytumblr.exception.NetworkException;
 import com.github.savemytumblr.exception.ResponseException;
@@ -77,7 +76,7 @@ public abstract class TumblrCall<T> implements Runnable {
         final TumblrCall<T> me = this;
 
         try {
-            final HttpRequest.Builder requestBuilder = this.api.setupCall(queryParams);
+            final HttpRequest.Builder requestBuilder = HttpRequest.newBuilder(URI.create(api.setupCall(queryParams)));
             requestBuilder.setHeader("User-Agent", authInterface.getUserAgent());
             requestBuilder.setHeader("Authorization", "Bearer " + authInterface.getAccessToken().token);
 
@@ -105,19 +104,18 @@ public abstract class TumblrCall<T> implements Runnable {
                         @Override
                         public void run() {
                             Dotenv dotenv = Dotenv.load();
+
+                            Url url = new Url("", "");
+                            url.addParameter("grant_type", "refresh_token");
+                            url.addParameter("client_id", dotenv.get("CONSUMER_KEY"));
+                            url.addParameter("client_secret", dotenv.get("CONSUMER_SECRET"));
+                            url.addParameter("refresh_token", authInterface.getAccessToken().refreshToken);
+
                             final HttpRequest request = HttpRequest.newBuilder()
                                     .uri(URI.create(Constants.API_ENDPOINT + "/oauth2/token"))
                                     .header("Content-Type", "application/x-www-form-urlencoded")
                                     .header("User-Agent", authInterface.getUserAgent())
-                                    .POST(BodyPublishers.ofString("grant_type="
-                                            + URLEncoder.encode("refresh_token", StandardCharsets.UTF_8) + "&client_id="
-                                            + URLEncoder.encode(dotenv.get("CONSUMER_KEY"), StandardCharsets.UTF_8)
-                                            + "&client_secret="
-                                            + URLEncoder.encode(dotenv.get("CONSUMER_SECRET"), StandardCharsets.UTF_8)
-                                            + "&refresh_token="
-                                            + URLEncoder.encode(authInterface.getAccessToken().refreshToken,
-                                                    StandardCharsets.UTF_8)))
-                                    .build();
+                                    .POST(BodyPublishers.ofString(url.toString())).build();
 
                             HttpResponse<String> response;
                             try {

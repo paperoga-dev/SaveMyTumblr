@@ -18,9 +18,7 @@
 
 package com.github.savemytumblr.api;
 
-import java.net.URI;
-import java.net.http.HttpRequest;
-import java.net.http.HttpRequest.Builder;
+import java.io.UnsupportedEncodingException;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -28,9 +26,9 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import com.github.savemytumblr.Constants;
+import com.github.savemytumblr.Url;
 
 import io.github.cdimascio.dotenv.Dotenv;
-import io.mikael.urlbuilder.UrlBuilder;
 
 public abstract class Api<T> {
 
@@ -54,19 +52,17 @@ public abstract class Api<T> {
     protected abstract T readData(JSONObject jsonObject)
             throws JSONException, com.github.savemytumblr.exception.RuntimeException;
 
-    protected Builder setupCall(Map<String, ?> queryParams) {
-        UrlBuilder url = UrlBuilder.fromString(Constants.API_ENDPOINT + getPath());
+    protected String setupCall(Map<String, ?> queryParams) throws UnsupportedEncodingException {
+        Url url = new Url(Constants.API_ENDPOINT, getPath());
 
         for (Map.Entry<String, ?> entry : defaultParams().entrySet()) {
-            url = url.addParameter(entry.getKey(), entry.getValue().toString());
+            url.addParameter(entry.getKey(), entry.getValue().toString());
         }
 
         for (Map.Entry<String, ?> entry : queryParams.entrySet()) {
-            url = url.addParameter(entry.getKey(), entry.getValue().toString());
+            url.addParameter(entry.getKey(), entry.getValue().toString());
         }
 
-        String urlString = url.toString();
-
-        return HttpRequest.newBuilder(URI.create(urlString));
+        return url.toString();
     }
 }

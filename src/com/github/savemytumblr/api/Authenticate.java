@@ -17,9 +17,9 @@ import com.github.savemytumblr.AccessToken;
 import com.github.savemytumblr.Constants;
 import com.github.savemytumblr.TumblrClient.Executor;
 import com.github.savemytumblr.TumblrClient.Logger;
+import com.github.savemytumblr.Url;
 
 import io.github.cdimascio.dotenv.Dotenv;
-import io.mikael.urlbuilder.UrlBuilder;
 
 public class Authenticate {
     public interface OnAuthenticationListener {
@@ -52,11 +52,13 @@ public class Authenticate {
                 public void run() {
                     final String state = UUID.randomUUID().toString();
                     Dotenv dotenv = Dotenv.load();
-                    onAuthenticationListener.onAuthenticationRequest(UrlBuilder
-                            .fromString("https://www.tumblr.com/oauth2/authorize")
-                            .addParameter("client_id", dotenv.get("CONSUMER_KEY")).addParameter("response_type", "code")
-                            .addParameter("scope", "write offline_access").addParameter("state", state)
-                            .addParameter("redirect_uri", Constants.CALLBACK_URL).toString(), state);
+                    Url url = new Url("https://www.tumblr.com", "/oauth2/authorize");
+                    url.addParameter("client_id", dotenv.get("CONSUMER_KEY"));
+                    url.addParameter("response_type", "code");
+                    url.addParameter("scope", "write offline_access");
+                    url.addParameter("state", state);
+                    url.addParameter("redirect_uri", Constants.CALLBACK_URL);
+                    onAuthenticationListener.onAuthenticationRequest(url.toString(), state);
                 }
             });
         }

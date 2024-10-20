@@ -1,6 +1,8 @@
 package com.github.savemytumblr;
 
-import java.util.ArrayList;
+import java.net.URI;
+import java.util.HashMap;
+import java.util.Map;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.SWTError;
@@ -12,8 +14,6 @@ import org.eclipse.swt.widgets.Dialog;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.MessageBox;
 import org.eclipse.swt.widgets.Shell;
-
-import io.mikael.urlbuilder.UrlBuilder;
 
 public class LoginBrowser extends Dialog {
     private String authCode;
@@ -54,11 +54,19 @@ public class LoginBrowser extends Dialog {
                         return;
                     }
 
-                    final UrlBuilder url = UrlBuilder.fromString(arg0.location);
+                    Map<String, String> queryParams = new HashMap<>();
 
-                    if (url.queryParameters.getOrDefault("state", new ArrayList<>()).getFirst().equals(state)
-                            && url.queryParameters.containsKey("code")) {
-                        authCode = url.queryParameters.get("code").getFirst();
+                    URI uri = URI.create(arg0.location);
+                    String[] items = uri.getQuery().split("&");
+
+                    for (String item : items) {
+                        String[] parts = item.split("=");
+
+                        queryParams.put(parts[0], parts[1]);
+                    }
+
+                    if (queryParams.getOrDefault("state", "").equals(state) && queryParams.containsKey("code")) {
+                        authCode = queryParams.get("code");
                         arg0.doit = false;
                         dialog.close();
                     }
