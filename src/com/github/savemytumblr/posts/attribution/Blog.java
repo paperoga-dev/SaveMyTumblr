@@ -33,7 +33,7 @@ public class Blog extends Base {
     }
 
     public Info.Base getBlog() {
-        return blog;
+        return this.blog;
     }
 
     public static Base doCreate(JSONObject attributionObject) throws JSONException {

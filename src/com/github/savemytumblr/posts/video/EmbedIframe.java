@@ -35,14 +35,14 @@ public class EmbedIframe {
     }
 
     public String getUrl() {
-        return url;
+        return this.url;
     }
 
     public int getWidth() {
-        return width;
+        return this.width;
     }
 
     public int getHeight() {
-        return height;
+        return this.height;
     }
 }

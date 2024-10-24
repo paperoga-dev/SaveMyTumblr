@@ -12,7 +12,6 @@ import java.nio.file.Paths;
 import java.nio.file.SimpleFileVisitor;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.concurrent.ExecutorService;
-import java.util.prefs.Preferences;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.SelectionEvent;
@@ -20,16 +19,13 @@ import org.eclipse.swt.events.SelectionListener;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
-import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.DirectoryDialog;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.ProgressBar;
 import org.eclipse.swt.widgets.TabFolder;
-import org.eclipse.swt.widgets.TabItem;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import com.github.savemytumblr.LogText;
 import com.github.savemytumblr.exception.RuntimeException;
 
 public class Converter extends TabItem {
@@ -37,62 +33,59 @@ public class Converter extends TabItem {
     private int okPosts = 0;
     private int totalPosts = 0;
 
-    public Converter(TabFolder parent, Preferences prefs, ExecutorService executor) {
-        super(parent, SWT.BORDER);
-
-        Composite comp = new Composite(parent, SWT.BORDER);
+    public Converter(TabFolder parent, ExecutorService executor) {
+        super("Converter", parent);
 
         GridLayout gridLayout = new GridLayout();
-        comp.setLayout(gridLayout);
+        getComp().setLayout(gridLayout);
         gridLayout.numColumns = 2;
 
-        Label lblPath = new Label(comp, SWT.NONE);
+        Label lblPath = new Label(getComp(), SWT.NONE);
         lblPath.setText("Path:");
-        lblPath.setLayoutData(new GridData(GridData.FILL, GridData.VERTICAL_ALIGN_CENTER, true, false));
+        lblPath.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
 
-        Button btnPathSelect = new Button(comp, SWT.PUSH);
+        Button btnPathSelect = new Button(getComp(), SWT.PUSH);
         btnPathSelect.setText("Select");
 
-        ProgressBar pbDownload = new ProgressBar(comp, SWT.INDETERMINATE);
+        ProgressBar pbDownload = new ProgressBar(getComp(), SWT.INDETERMINATE);
         pbDownload.setVisible(false);
-        pbDownload.setLayoutData(new GridData(GridData.FILL, GridData.FILL, true, false, 2, 1));
+        pbDownload.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false, 2, 1));
 
-        LogText txtLog = new LogText(comp);
-        txtLog.setLayoutData(new GridData(GridData.FILL, GridData.FILL, true, true, 2, 1));
+        LogText txtLog = new LogText(getComp());
+        txtLog.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 2, 1));
 
-        Button btnConvert = new Button(comp, SWT.PUSH);
+        Button btnConvert = new Button(getComp(), SWT.PUSH);
         btnConvert.setText("Convert");
-        btnConvert.setLayoutData(new GridData(GridData.HORIZONTAL_ALIGN_END));
+        btnConvert.setLayoutData(new GridData(SWT.RIGHT, SWT.CENTER, true, false, 2, 1));
 
         btnPathSelect.addSelectionListener(new SelectionListener() {
-
             @Override
             public void widgetDefaultSelected(SelectionEvent arg0) {
+                // Not used
             }
 
             @Override
             public void widgetSelected(SelectionEvent arg0) {
-                path = new DirectoryDialog(parent.getShell()).open();
-                lblPath.setText("Path: " + path);
+                Converter.this.path = new DirectoryDialog(parent.getShell()).open();
+                lblPath.setText("Path: " + Converter.this.path);
             }
         });
 
         btnConvert.addSelectionListener(new SelectionListener() {
-
             @Override
             public void widgetDefaultSelected(SelectionEvent arg0) {
+                // Not used
             }
 
             @Override
             public void widgetSelected(SelectionEvent arg0) {
-                if (path.isEmpty()) {
+                if (Converter.this.path.isEmpty()) {
                     return;
                 }
 
-                okPosts = totalPosts = 0;
+                Converter.this.okPosts = Converter.this.totalPosts = 0;
 
                 executor.execute(new Runnable() {
-
                     @Override
                     public void run() {
                         getDisplay().asyncExec(new Runnable() {
@@ -103,8 +96,7 @@ public class Converter extends TabItem {
                         });
 
                         try {
-                            Files.walkFileTree(Paths.get(path), new SimpleFileVisitor<Path>() {
-
+                            Files.walkFileTree(Paths.get(Converter.this.path), new SimpleFileVisitor<Path>() {
                                 @Override
                                 public FileVisitResult visitFile(Path file, BasicFileAttributes attrs)
                                         throws IOException {
@@ -117,7 +109,7 @@ public class Converter extends TabItem {
                                     try {
                                         Long.parseLong(fileParts[0]);
 
-                                        ++totalPosts;
+                                        ++Converter.this.totalPosts;
 
                                         getDisplay().asyncExec(new Runnable() {
                                             @Override
@@ -126,20 +118,20 @@ public class Converter extends TabItem {
                                             }
                                         });
 
-                                        FileOutputStream outputStream = new FileOutputStream(Paths
+                                        try (FileOutputStream outputStream = new FileOutputStream(Paths
                                                 .get(file.getParent().toString(), fileParts[0] + ".html").toString());
-                                        BufferedWriter writer = new BufferedWriter(
-                                                new OutputStreamWriter(outputStream, StandardCharsets.UTF_8));
+                                                BufferedWriter writer = new BufferedWriter(
+                                                        new OutputStreamWriter(outputStream, StandardCharsets.UTF_8))) {
 
-                                        writer.write(new com.github.savemytumblr.posts.Post.Item(
-                                                new JSONObject(Files.readString(file, StandardCharsets.UTF_8)))
-                                                .toHTML(file.getParent().toString(), fileParts[0]).toString());
-                                        writer.close();
+                                            writer.write(new com.github.savemytumblr.posts.Post.Item(
+                                                    new JSONObject(Files.readString(file, StandardCharsets.UTF_8)))
+                                                    .toHTML(file.getParent().toString(), fileParts[0]).toString());
+                                        }
 
-                                        ++okPosts;
+                                        ++Converter.this.okPosts;
 
-                                    } catch (NumberFormatException e) {
-
+                                    } catch (@SuppressWarnings("unused") NumberFormatException e) {
+                                        // Not used
                                     } catch (JSONException | RuntimeException | IOException e) {
                                         e.printStackTrace();
 
@@ -153,9 +145,7 @@ public class Converter extends TabItem {
 
                                     return FileVisitResult.CONTINUE;
                                 }
-
                             });
-
                         } catch (IOException e) {
                             // TODO Auto-generated catch block
                             e.printStackTrace();
@@ -167,22 +157,15 @@ public class Converter extends TabItem {
                                 pbDownload.setVisible(false);
 
                                 txtLog.appendLine("");
-                                txtLog.appendLine(
-                                        "Converted " + String.valueOf(okPosts) + "/" + String.valueOf(totalPosts) + ", "
-                                                + String.valueOf(totalPosts - okPosts) + " failed");
+                                txtLog.appendLine("Converted " + String.valueOf(Converter.this.okPosts) + "/"
+                                        + String.valueOf(Converter.this.totalPosts) + ", "
+                                        + String.valueOf(Converter.this.totalPosts - Converter.this.okPosts)
+                                        + " failed");
                             }
                         });
                     }
                 });
             }
         });
-
-        setControl(comp);
-        setText("Converter");
-    }
-
-    @Override
-    protected void checkSubclass() {
-        // TODO Auto-generated method stub
     }
 }

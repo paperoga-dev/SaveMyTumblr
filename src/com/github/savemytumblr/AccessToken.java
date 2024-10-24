@@ -3,19 +3,27 @@ package com.github.savemytumblr;
 import org.json.JSONObject;
 
 public class AccessToken {
-    public final String token;
-    public final String refreshToken;
+    private final String token;
+    private final String refreshToken;
 
-    public AccessToken(String token, String refreshToken) {
-        this.token = token;
-        this.refreshToken = refreshToken;
+    public AccessToken(String sToken, String sRefreshToken) {
+        this.token = sToken;
+        this.refreshToken = sRefreshToken;
     }
 
     public JSONObject toJSON() {
         JSONObject root = new JSONObject();
-        root.put("token", token);
-        root.put("refreshToken", refreshToken);
+        root.put("token", this.token);
+        root.put("refreshToken", this.refreshToken);
         return root;
+    }
+
+    public String getToken() {
+        return this.token;
+    }
+
+    public String getRefreshToken() {
+        return this.refreshToken;
     }
 
     static public AccessToken fromJSON(JSONObject root) {

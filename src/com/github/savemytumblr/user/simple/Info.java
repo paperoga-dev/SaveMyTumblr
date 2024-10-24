@@ -52,31 +52,31 @@ public interface Info {
                 this.defaultPostFormat = PostFormat.Raw;
             }
 
-            JSONArray blogs = userObject.getJSONArray("blogs");
+            JSONArray jsonBlogs = userObject.getJSONArray("blogs");
             this.blogs = new ArrayList<>();
-            for (int i = 0; i < blogs.length(); ++i) {
-                this.blogs.add(new com.github.savemytumblr.blog.simple.Info.Data(blogs.getJSONObject(i)));
+            for (int i = 0; i < jsonBlogs.length(); ++i) {
+                this.blogs.add(new com.github.savemytumblr.blog.simple.Info.Data(jsonBlogs.getJSONObject(i)));
             }
         }
 
         public String getName() {
-            return name;
+            return this.name;
         }
 
         public int getLikes() {
-            return likes;
+            return this.likes;
         }
 
         public int getFollowing() {
-            return following;
+            return this.following;
         }
 
         public PostFormat getDefaultPostFormat() {
-            return defaultPostFormat;
+            return this.defaultPostFormat;
         }
 
         public List<com.github.savemytumblr.blog.simple.Info.Data> getBlogs() {
-            return blogs;
+            return this.blogs;
         }
     }
 

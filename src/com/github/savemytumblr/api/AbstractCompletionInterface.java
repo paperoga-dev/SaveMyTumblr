@@ -20,6 +20,6 @@ package com.github.savemytumblr.api;
 
 import com.github.savemytumblr.exception.BaseException;
 
-public interface AbstractCompletionInterface<T> {
+public interface AbstractCompletionInterface {
     void onFailure(BaseException e);
 }

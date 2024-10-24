@@ -45,7 +45,7 @@ public class Base {
     }
 
     public String getUrl() {
-        return url;
+        return this.url;
     }
 
     public static Base doCreate(JSONObject attributionObject)

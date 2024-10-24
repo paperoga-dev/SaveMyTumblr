@@ -56,36 +56,40 @@ public final class TumblrClient {
         void remove(String key);
     }
 
-    public interface OnLoginListener {
+    public interface LoginListener {
         void onAccessGranted();
-
-        void onAccessRequest(Authenticate authenticator, String authenticationUrl, String state);
 
         void onAccessDenied();
 
         void onLoginFailure(BaseException e);
     }
 
+    public interface OnLoginAction {
+        void onAccessRequest(Authenticate authenticator, String authenticationUrl, String state);
+    }
+
     private String appName;
     private String appVersion;
 
     private AccessToken accessToken;
-    private OnLoginListener onLoginListener;
+    private List<LoginListener> loginListeners;
+    private OnLoginAction loginAction;
 
     private Executor executor;
-    private Logger logger;
+    private List<Logger> loggers;
     private Storage storage;
 
     private Info.Data me;
 
-    public TumblrClient(Executor executor, Logger logger, Storage storage) {
+    public TumblrClient(Executor cExecutor, Storage cStorage, OnLoginAction iLoginAction) {
         super();
 
-        this.executor = executor;
-        this.logger = logger;
-        this.storage = storage;
+        this.executor = cExecutor;
+        this.loggers = new ArrayList<>();
+        this.storage = cStorage;
 
-        onLoginListener = null;
+        this.loginAction = iLoginAction;
+        this.loginListeners = new ArrayList<>();
 
         this.me = null;
 
@@ -94,11 +98,32 @@ public final class TumblrClient {
     }
 
     protected Executor getExecutor() {
-        return executor;
+        return this.executor;
     }
 
     private Logger getLogger() {
-        return logger;
+        return new Logger() {
+            @Override
+            public void info(String msg) {
+                for (final Logger logger : TumblrClient.this.loggers) {
+                    logger.info(msg);
+                }
+            }
+
+            @Override
+            public void warning(String msg) {
+                for (final Logger logger : TumblrClient.this.loggers) {
+                    logger.warning(msg);
+                }
+            }
+
+            @Override
+            public void error(String msg) {
+                for (final Logger logger : TumblrClient.this.loggers) {
+                    logger.error(msg);
+                }
+            }
+        };
     }
 
     private void doLogin() {
@@ -107,20 +132,23 @@ public final class TumblrClient {
         auth.setOnAuthenticationListener(new Authenticate.OnAuthenticationListener() {
             @Override
             public void onAuthenticationRequest(String authenticationUrl, String state) {
-                onLoginListener.onAccessRequest(auth, authenticationUrl, state);
+                TumblrClient.this.loginAction.onAccessRequest(auth, authenticationUrl, state);
             }
 
             @Override
-            public void onAuthenticationGranted(AccessToken accessToken) {
+            public void onAuthenticationGranted(AccessToken cAccessToken) {
                 // redo user request, this time should work
-                login(accessToken);
+                login(cAccessToken);
             }
 
             @Override
             public void onFailure(Exception exception) {
-                onLoginListener.onAccessDenied();
+                for (final LoginListener listener : TumblrClient.this.loginListeners) {
+                    listener.onAccessDenied();
+                }
             }
         });
+
         auth.request();
     }
 
@@ -128,25 +156,28 @@ public final class TumblrClient {
         return new AuthInterface() {
             @Override
             public AccessToken getAccessToken() {
-                return accessToken;
+                return TumblrClient.this.accessToken;
             }
 
             @Override
             public String getUserAgent() {
-                return appName + "/" + appVersion;
+                return TumblrClient.this.appName + "/" + TumblrClient.this.appVersion;
             }
 
             @Override
             public void onUpdateToken(AccessToken aToken) {
-                logger.info("Stored Access Token: " + aToken.toJSON().toString());
-                accessToken = aToken;
-                storage.put(Constants.TOKEN, accessToken.toJSON().toString());
+                for (final Logger logger : TumblrClient.this.loggers) {
+                    logger.info("Stored Access Token: " + aToken.toJSON().toString());
+                }
+
+                TumblrClient.this.accessToken = aToken;
+                TumblrClient.this.storage.put(Constants.TOKEN, TumblrClient.this.accessToken.toJSON().toString());
             }
 
             @Override
             public void onClearToken() {
-                accessToken = null;
-                storage.remove(Constants.TOKEN);
+                TumblrClient.this.accessToken = null;
+                TumblrClient.this.storage.remove(Constants.TOKEN);
             }
         };
     }
@@ -158,13 +189,14 @@ public final class TumblrClient {
                 new CompletionInterface<Info.Data>() {
                     @Override
                     public void onSuccess(Info.Data result) {
-                        me = result;
+                        TumblrClient.this.me = result;
 
-                        if (onLoginListener != null) {
-                            onLoginListener.onAccessGranted();
+                        for (final LoginListener listener : TumblrClient.this.loginListeners) {
+                            listener.onAccessGranted();
                         }
 
-                        storage.put(Constants.TOKEN, accessToken.toJSON().toString());
+                        TumblrClient.this.storage.put(Constants.TOKEN,
+                                TumblrClient.this.accessToken.toJSON().toString());
                     }
 
                     @Override
@@ -172,32 +204,50 @@ public final class TumblrClient {
                         if (!(e instanceof NetworkException)) {
                             // we can reach Tumblr, but we cannot access it. So, throw away our tokens, and
                             // let's ask a new authentication
-                            logger.warning("Auth token not valid");
+                            for (final Logger logger : TumblrClient.this.loggers) {
+                                logger.warning("Auth token not valid");
+                            }
 
                             logout();
                         }
 
                         // else we cannot reach Tumblr, fail but do not remove our tokens
-
-                        if (onLoginListener != null) {
-                            onLoginListener.onLoginFailure(e);
+                        for (final LoginListener listener : TumblrClient.this.loginListeners) {
+                            listener.onLoginFailure(e);
                         }
                     }
                 }));
     }
 
+    public void addLogger(Logger logger) {
+        this.loggers.add(logger);
+    }
+
+    public void remove(Logger logger) {
+        this.loggers.remove(logger);
+    }
+
+    public void addLoginListener(LoginListener loginListener) {
+        this.loginListeners.add(loginListener);
+    }
+
+    public void removeLoginListener(LoginListener loginListener) {
+        this.loginListeners.remove(loginListener);
+    }
+
     public void login() {
-        if (onLoginListener == null) {
-            throw new NullPointerException("onLoginListener is null");
+        if (this.loginAction == null) {
+            throw new NullPointerException("loginAction is null");
         }
 
-        if (storage.has(Constants.TOKEN)) {
-
+        if (this.storage.has(Constants.TOKEN)) {
             // ok, we already have authentication tokens, let's try them first
-            accessToken = AccessToken.fromJSON(storage.get(Constants.TOKEN, ""));
-            logger.info("Stored Access Token: " + accessToken.toJSON().toString());
+            this.accessToken = AccessToken.fromJSON(this.storage.get(Constants.TOKEN, ""));
+            for (final Logger logger : this.loggers) {
+                logger.info("Stored Access Token: " + this.accessToken.toJSON().toString());
+            }
 
-            login(accessToken);
+            login(this.accessToken);
         } else {
             // never logged in before, do that
             doLogin();
@@ -205,17 +255,17 @@ public final class TumblrClient {
     }
 
     public void logout() {
-        storage.remove(Constants.TOKEN);
-        accessToken = null;
+        this.storage.remove(Constants.TOKEN);
+        this.accessToken = null;
     }
 
     /* **** SINGLE ITEM API CALL **** */
     private <T> void doCall(final com.github.savemytumblr.api.simple.ApiInterface<T> obj,
             final Map<String, String> queryParams,
             final com.github.savemytumblr.api.simple.CompletionInterface<T> onCompletion) {
-        if (accessToken == null) {
-            if (onLoginListener != null) {
-                onLoginListener.onLoginFailure(new com.github.savemytumblr.exception.RuntimeException("Not logged"));
+        if (this.accessToken == null) {
+            for (final LoginListener listener : this.loginListeners) {
+                listener.onLoginFailure(new com.github.savemytumblr.exception.RuntimeException("Not logged"));
             }
 
             return;
@@ -231,21 +281,21 @@ public final class TumblrClient {
             final Map<String, String> queryParams,
             final com.github.savemytumblr.api.array.CompletionInterface<T, W> onCompletion) {
 
-        if (accessToken == null) {
-            if (onLoginListener != null) {
-                onLoginListener.onLoginFailure(new com.github.savemytumblr.exception.RuntimeException("Not logged"));
+        if (this.accessToken == null) {
+            for (final LoginListener listener : this.loginListeners) {
+                listener.onLoginFailure(new com.github.savemytumblr.exception.RuntimeException("Not logged"));
             }
 
             return;
         }
 
-        int newLimit = (limit == -1) ? 20 : Math.min(20, limit);
+        final int newLimit = (limit == -1) ? 20 : Math.min(20, limit);
 
         getExecutor().execute(obj.call(getExecutor(), getLogger(), resultList, queryParams, makeAuthInterface(), offset,
                 newLimit, new com.github.savemytumblr.api.array.CompletionInterface<T, W>() {
 
                     @Override
-                    public void onSuccess(List<T> result, int offset, int limit, int count) {
+                    public void onSuccess(List<T> result, Integer iOffset, Integer iLimit, int iCount) {
                         resultList.addAll(result);
                         if (result.isEmpty()) {
                             // This is a Tumblr bug, some array-based APIs return less items
@@ -258,10 +308,10 @@ public final class TumblrClient {
                             return;
                         }
 
-                        int newOffset = offset + resultList.size();
-                        int newLimit;
+                        Integer inNewOffset = iOffset + resultList.size();
+                        Integer inNewLimit;
 
-                        if (count == -1) {
+                        if (iCount == -1) {
                             // cannot get the end of the list
 
                             if (obj.getLimit() == -1) {
@@ -272,24 +322,24 @@ public final class TumblrClient {
                                             resultList.size());
                                 }
                                 return;
-                            } else {
-                                if (resultList.size() >= obj.getLimit()) {
-                                    // fetched enough content, we're done
-                                    if (onCompletion != null) {
-                                        onCompletion.onSuccess(resultList, obj.getOffset(), obj.getLimit(),
-                                                resultList.size());
-                                    }
-                                    return;
-                                }
-
-                                newLimit = obj.getLimit() - resultList.size();
                             }
+
+                            if (resultList.size() >= obj.getLimit()) {
+                                // fetched enough content, we're done
+                                if (onCompletion != null) {
+                                    onCompletion.onSuccess(resultList, obj.getOffset(), obj.getLimit(),
+                                            resultList.size());
+                                }
+                                return;
+                            }
+
+                            inNewLimit = obj.getLimit() - resultList.size();
 
                         } else {
 
-                            newLimit = ((obj.getLimit() == -1) ? count : obj.getLimit()) - resultList.size();
+                            inNewLimit = ((obj.getLimit() == -1) ? iCount : obj.getLimit()) - resultList.size();
 
-                            if (newLimit <= 0) {
+                            if (inNewLimit <= 0) {
                                 // fetched enough content, we're done
                                 if (onCompletion != null) {
                                     onCompletion.onSuccess(resultList, obj.getOffset(), obj.getLimit(),
@@ -299,7 +349,7 @@ public final class TumblrClient {
                             }
                         }
 
-                        doCall(resultList, obj, newOffset, newLimit, queryParams, onCompletion);
+                        doCall(resultList, obj, inNewOffset, inNewLimit, queryParams, onCompletion);
                     }
 
                     @Override
@@ -331,8 +381,8 @@ public final class TumblrClient {
     }
 
     public <T, W extends ContentInterface<T>> void call(
-            final Class<? extends com.github.savemytumblr.api.array.ApiInterface<T, W>> clazz, final int offset,
-            final int limit, final Map<String, String> queryParams,
+            final Class<? extends com.github.savemytumblr.api.array.ApiInterface<T, W>> clazz, final Integer offset,
+            final Integer limit, final Map<String, String> queryParams,
             final com.github.savemytumblr.api.array.CompletionInterface<T, W> onCompletion) {
 
         Class<?>[] cArg = new Class<?>[] { Integer.class, Integer.class };
@@ -347,20 +397,20 @@ public final class TumblrClient {
     }
 
     public <T, W extends ContentInterface<T>> void call(
-            final Class<? extends com.github.savemytumblr.api.array.ApiInterface<T, W>> clazz, final int offset,
+            final Class<? extends com.github.savemytumblr.api.array.ApiInterface<T, W>> clazz, final Integer offset,
             final Map<String, String> queryParams,
             final com.github.savemytumblr.api.array.CompletionInterface<T, W> onCompletion) {
         call(clazz, offset, 20, queryParams, onCompletion);
     }
 
     public <T, W extends ContentInterface<T>> void call(
-            final Class<? extends com.github.savemytumblr.api.array.ApiInterface<T, W>> clazz, final int offset,
-            final int limit, final com.github.savemytumblr.api.array.CompletionInterface<T, W> onCompletion) {
+            final Class<? extends com.github.savemytumblr.api.array.ApiInterface<T, W>> clazz, final Integer offset,
+            final Integer limit, final com.github.savemytumblr.api.array.CompletionInterface<T, W> onCompletion) {
         call(clazz, offset, limit, new HashMap<>(), onCompletion);
     }
 
     public <T, W extends ContentInterface<T>> void call(
-            final Class<? extends com.github.savemytumblr.api.array.ApiInterface<T, W>> clazz, final int offset,
+            final Class<? extends com.github.savemytumblr.api.array.ApiInterface<T, W>> clazz, final Integer offset,
             final com.github.savemytumblr.api.array.CompletionInterface<T, W> onCompletion) {
         call(clazz, offset, 20, new HashMap<>(), onCompletion);
     }
@@ -387,7 +437,7 @@ public final class TumblrClient {
 
     public <T, W extends ContentInterface<T>> void call(
             final Class<? extends com.github.savemytumblr.blog.array.ApiInterface<T, W>> clazz, final String blogId,
-            final int offset, final int limit, final Map<String, String> queryParams,
+            final Integer offset, final Integer limit, final Map<String, String> queryParams,
             final com.github.savemytumblr.api.array.CompletionInterface<T, W> onCompletion) {
 
         Class<?>[] cArg = new Class<?>[] { Integer.class, Integer.class, String.class };
@@ -403,21 +453,21 @@ public final class TumblrClient {
 
     public <T, W extends ContentInterface<T>> void call(
             final Class<? extends com.github.savemytumblr.blog.array.ApiInterface<T, W>> clazz, final String blogId,
-            final int offset, final Map<String, String> queryParams,
+            final Integer offset, final Map<String, String> queryParams,
             final com.github.savemytumblr.api.array.CompletionInterface<T, W> onCompletion) {
         call(clazz, blogId, offset, 20, queryParams, onCompletion);
     }
 
     public <T, W extends ContentInterface<T>> void call(
             final Class<? extends com.github.savemytumblr.blog.array.ApiInterface<T, W>> clazz, final String blogId,
-            final int offset, final int limit,
+            final Integer offset, final Integer limit,
             final com.github.savemytumblr.api.array.CompletionInterface<T, W> onCompletion) {
         call(clazz, blogId, offset, limit, new HashMap<>(), onCompletion);
     }
 
     public <T, W extends ContentInterface<T>> void call(
             final Class<? extends com.github.savemytumblr.blog.array.ApiInterface<T, W>> clazz, final String blogId,
-            final int offset, final com.github.savemytumblr.api.array.CompletionInterface<T, W> onCompletion) {
+            final Integer offset, final com.github.savemytumblr.api.array.CompletionInterface<T, W> onCompletion) {
         call(clazz, blogId, offset, 20, new HashMap<>(), onCompletion);
     }
     /* **** BLOG BASED API CALLS **** */
@@ -443,15 +493,11 @@ public final class TumblrClient {
     }
     /* **** POST BASED API CALLS **** */
 
-    public void setOnLoginListener(OnLoginListener onLoginListener) {
-        this.onLoginListener = onLoginListener;
-    }
-
     public Info.Data getMe() {
-        return me;
+        return this.me;
     }
 
     public boolean isLogged() {
-        return accessToken != null;
+        return this.accessToken != null;
     }
 }

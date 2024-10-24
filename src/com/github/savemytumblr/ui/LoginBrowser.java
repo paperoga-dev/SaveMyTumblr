@@ -1,4 +1,4 @@
-package com.github.savemytumblr;
+package com.github.savemytumblr.ui;
 
 import java.net.URI;
 import java.util.HashMap;
@@ -15,13 +15,15 @@ import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.MessageBox;
 import org.eclipse.swt.widgets.Shell;
 
+import com.github.savemytumblr.Constants;
+
 public class LoginBrowser extends Dialog {
     private String authCode;
     final private String state;
 
-    public LoginBrowser(String state, Shell parentShell) {
+    public LoginBrowser(String sState, Shell parentShell) {
         super(parentShell);
-        this.state = state;
+        this.state = sState;
     }
 
     public String open(String url) {
@@ -45,6 +47,7 @@ public class LoginBrowser extends Dialog {
 
                 @Override
                 public void changed(LocationEvent arg0) {
+                    // Not used
                 }
 
                 @Override
@@ -65,8 +68,9 @@ public class LoginBrowser extends Dialog {
                         queryParams.put(parts[0], parts[1]);
                     }
 
-                    if (queryParams.getOrDefault("state", "").equals(state) && queryParams.containsKey("code")) {
-                        authCode = queryParams.get("code");
+                    if (queryParams.getOrDefault("state", "").equals(LoginBrowser.this.state)
+                            && queryParams.containsKey("code")) {
+                        LoginBrowser.this.authCode = queryParams.get("code");
                         arg0.doit = false;
                         dialog.close();
                     }
@@ -84,7 +88,7 @@ public class LoginBrowser extends Dialog {
                 }
             }
 
-            return authCode;
+            return this.authCode;
 
         } catch (SWTError e) {
             MessageBox messageBox = new MessageBox(dialog, SWT.ICON_ERROR | SWT.OK);

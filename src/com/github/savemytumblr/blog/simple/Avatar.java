@@ -32,10 +32,10 @@ public interface Avatar {
         private int height; // Number - Avatar height
         private String url; // String - Avatar url
 
-        Data(int size, String url) {
-            this.width = size;
-            this.height = size;
-            this.url = url;
+        Data(int iSize, String sUrl) {
+            this.width = iSize;
+            this.height = iSize;
+            this.url = sUrl;
         }
 
         public Data(JSONObject avatarObject) throws JSONException {
@@ -45,15 +45,15 @@ public interface Avatar {
         }
 
         public int getWidth() {
-            return width;
+            return this.width;
         }
 
         public int getHeight() {
-            return height;
+            return this.height;
         }
 
         public String getUrl() {
-            return url;
+            return this.url;
         }
     }
 

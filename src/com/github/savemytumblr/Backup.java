@@ -56,10 +56,10 @@ public class Backup {
             this.id = 0;
         }
 
-        public TimePoint(int index, Date timestamp, long id) {
-            this.index = index;
-            this.timestamp = timestamp;
-            this.id = id;
+        public TimePoint(int iIndex, Date cTimestamp, long lId) {
+            this.index = iIndex;
+            this.timestamp = cTimestamp;
+            this.id = lId;
         }
 
         public TimePoint(JSONObject jsonObject) {
@@ -67,7 +67,7 @@ public class Backup {
                 this.index = jsonObject.getInt("index");
                 this.timestamp = new Date(jsonObject.getLong("timestamp") * 1000);
                 this.id = jsonObject.getLong("id");
-            } catch (JSONException e) {
+            } catch (@SuppressWarnings("unused") JSONException e) {
                 this.index = 0;
                 this.timestamp = new Date();
                 this.id = 0;
@@ -87,19 +87,19 @@ public class Backup {
         }
 
         public int getIndex() {
-            return index;
+            return this.index;
         }
 
         public Date getTimestamp() {
-            return timestamp;
+            return this.timestamp;
         }
 
         public long getId() {
-            return id;
+            return this.id;
         }
 
         public boolean isNull() {
-            return (index == 0) && (timestamp == null) && (id == 0);
+            return (this.index == 0) && (this.timestamp == null) && (this.id == 0);
         }
     }
 
@@ -112,9 +112,9 @@ public class Backup {
             this.tEnd = new TimePoint();
         }
 
-        public BackupState(TimePoint tStart, TimePoint tEnd) {
-            this.tStart = tStart;
-            this.tEnd = tEnd;
+        public BackupState(TimePoint tpStart, TimePoint tpEnd) {
+            this.tStart = tpStart;
+            this.tEnd = tpEnd;
         }
 
         public BackupState(JSONObject jsonObject) throws JSONException {
@@ -123,11 +123,11 @@ public class Backup {
         }
 
         public TimePoint getStart() {
-            return tStart;
+            return this.tStart;
         }
 
         public TimePoint getEnd() {
-            return tEnd;
+            return this.tEnd;
         }
 
         public JSONObject toJSON() {
@@ -140,7 +140,7 @@ public class Backup {
         }
     }
 
-    final private TumblrClient tc;
+    final private TumblrClient tumblrClient;
     private String blogName;
     private Path blogPath;
     private BackupState backupState;
@@ -155,9 +155,9 @@ public class Backup {
     private AtomicBoolean isRunning;
     private AtomicBoolean terminate;
 
-    public Backup(Path backupRootPath, TumblrClient tc, String blogName, Progress progress) {
-        this.tc = tc;
-        this.blogName = blogName;
+    public Backup(Path cBackupRootPath, TumblrClient cTumblrClient, String sBlogName, Progress cProgress) {
+        this.tumblrClient = cTumblrClient;
+        this.blogName = sBlogName;
         this.isRunning = new AtomicBoolean(false);
         this.terminate = new AtomicBoolean(false);
         this.esTC = null;
@@ -166,10 +166,10 @@ public class Backup {
         this.savedFromHead = 0;
         this.blogFirstPost = null;
         this.tailFound = false;
-        this.progress = progress;
+        this.progress = cProgress;
 
         try {
-            this.blogPath = backupRootPath.resolve(this.blogName);
+            this.blogPath = cBackupRootPath.resolve(this.blogName);
             Files.createDirectories(this.blogPath);
         } catch (IOException e) {
             e.printStackTrace();
@@ -233,7 +233,7 @@ public class Backup {
 
                     URL url = URI.create(sUrl).toURL();
 
-                    progress.log("=> Save media " + sUrl);
+                    this.progress.log("=> Save media " + sUrl);
 
                     HttpsURLConnection httpConn = (HttpsURLConnection) url.openConnection();
                     httpConn.addRequestProperty("User-Agent",
@@ -241,13 +241,13 @@ public class Backup {
                     httpConn.addRequestProperty("Accept", req);
 
                     if (httpConn.getResponseCode() == HttpURLConnection.HTTP_OK) {
-                        InputStream inputStream = httpConn.getInputStream();
-                        Files.copy(inputStream, fPath, StandardCopyOption.REPLACE_EXISTING);
-                        inputStream.close();
+                        try (InputStream inputStream = httpConn.getInputStream()) {
+                            Files.copy(inputStream, fPath, StandardCopyOption.REPLACE_EXISTING);
+                        }
                     }
-                } catch (SSLException | URISyntaxException | UnknownHostException e) {
-
-                } catch (ConnectException e) {
+                } catch (@SuppressWarnings("unused") SSLException | URISyntaxException | UnknownHostException e) {
+                    // Not used
+                } catch (@SuppressWarnings("unused") ConnectException e) {
                     continue;
                 }
 
@@ -263,39 +263,40 @@ public class Backup {
     private void savePost(Post.Item item) throws URISyntaxException, IOException {
         LocalDate lDate = item.getTimestamp().toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
 
-        Path postPath = blogPath.resolve(String.valueOf(lDate.getYear()))
+        Path postPath = this.blogPath.resolve(String.valueOf(lDate.getYear()))
                 .resolve(String.format("%02d", lDate.getMonthValue()))
                 .resolve(String.format("%02d", lDate.getDayOfMonth()));
         Files.createDirectories(postPath);
 
-        progress.log("Save post " + String.valueOf(item.getId()));
+        this.progress.log("Save post " + String.valueOf(item.getId()));
 
-        BufferedWriter writer = Files.newBufferedWriter(postPath.resolve(String.valueOf(item.getId()) + ".json"),
-                StandardCharsets.UTF_8);
-        writer.write(item.getJSON());
-        writer.close();
+        try (BufferedWriter writer = Files.newBufferedWriter(postPath.resolve(String.valueOf(item.getId()) + ".json"),
+                StandardCharsets.UTF_8)) {
+            writer.write(item.getJSON());
+        }
 
         saveMedia(postPath.resolve(String.valueOf(item.getId())), item);
 
-        progress.log("");
+        this.progress.log("");
     }
 
     private void updateState(TimePoint start, TimePoint end) {
-        TimePoint newStart = (start == null) ? backupState.getStart() : start;
-        TimePoint newEnd = (end == null) ? backupState.getEnd() : end;
+        TimePoint newStart = (start == null) ? this.backupState.getStart() : start;
+        TimePoint newEnd = (end == null) ? this.backupState.getEnd() : end;
 
-        backupState = new BackupState(newStart, newEnd);
+        this.backupState = new BackupState(newStart, newEnd);
 
         try {
-            BufferedWriter writer = Files.newBufferedWriter(blogPath.resolve("data.json"), StandardCharsets.UTF_8);
-            writer.write(backupState.toJSON().toString());
-            writer.close();
+            try (BufferedWriter writer = Files.newBufferedWriter(this.blogPath.resolve("data.json"),
+                    StandardCharsets.UTF_8)) {
+                writer.write(this.backupState.toJSON().toString());
+            }
         } catch (IOException e) {
             e.printStackTrace();
         }
     }
 
-    private void joinThread(Thread t) {
+    private static void joinThread(Thread t) {
         if (t != null) {
             try {
                 t.join();
@@ -306,16 +307,16 @@ public class Backup {
     }
 
     private void downloadHead() {
-        Thread prevT = esTC;
+        Thread prevT = this.esTC;
 
-        esTC = new Thread(new Runnable() {
+        this.esTC = new Thread(new Runnable() {
 
             @Override
             public void run() {
-                tc.call(Posts.Api.class, blogName, currentOffset, 20,
+                Backup.this.tumblrClient.call(Posts.Api.class, Backup.this.blogName, Backup.this.currentOffset, 20,
                         new com.github.savemytumblr.api.array.CompletionInterface<Post.Item, Post.Data>() {
                             @Override
-                            public void onSuccess(List<Post.Item> result, int offset, int limit, int count) {
+                            public void onSuccess(List<Post.Item> result, Integer offset, Integer limit, int count) {
                                 result.sort(new Comparator<Post.Item>() {
                                     @Override
                                     public int compare(Item o1, Item o2) {
@@ -324,7 +325,7 @@ public class Backup {
                                 });
 
                                 boolean headFound = false;
-                                boolean emptyBackup = backupState.getStart().isNull();
+                                boolean emptyBackup = Backup.this.backupState.getStart().isNull();
                                 int pinnedItems = 0;
 
                                 for (Post.Item item : result) {
@@ -333,69 +334,72 @@ public class Backup {
                                         continue;
                                     }
 
-                                    if (blogFirstPost == null) {
-                                        blogFirstPost = new TimePoint(0, item.getTimestamp(), item.getId());
+                                    if (Backup.this.blogFirstPost == null) {
+                                        Backup.this.blogFirstPost = new TimePoint(0, item.getTimestamp(), item.getId());
                                     }
 
-                                    if (emptyBackup
-                                            || item.getTimestamp().after(backupState.getStart().getTimestamp())) {
+                                    if (emptyBackup || item.getTimestamp()
+                                            .after(Backup.this.backupState.getStart().getTimestamp())) {
                                         try {
                                             savePost(item);
                                         } catch (Exception e) {
-                                            isRunning.set(false);
-                                            progress.onCompleted(false);
+                                            Backup.this.isRunning.set(false);
+                                            Backup.this.progress.onCompleted(false);
                                             e.printStackTrace();
                                             return;
                                         }
-                                        ++savedFromHead;
+                                        ++Backup.this.savedFromHead;
 
                                         if (emptyBackup) {
                                             headFound = true;
                                         }
-                                    } else if (!item.getTimestamp().after(backupState.getStart().getTimestamp())) {
+                                    } else if (!item.getTimestamp()
+                                            .after(Backup.this.backupState.getStart().getTimestamp())) {
                                         headFound = true;
                                         break;
                                     }
 
-                                    if (terminate.get()) {
-                                        isRunning.set(false);
+                                    if (Backup.this.terminate.get()) {
+                                        Backup.this.isRunning.set(false);
                                         return;
                                     }
                                 }
 
-                                progress.progress(currentOffset + result.size(), totalPosts);
+                                Backup.this.progress.progress(Backup.this.currentOffset + result.size(),
+                                        Backup.this.totalPosts);
 
                                 if (!headFound) {
-                                    currentOffset += result.size();
+                                    Backup.this.currentOffset += result.size();
                                     downloadHead();
                                 } else {
                                     if (emptyBackup) {
-                                        tailFound = true;
-                                        updateState(blogFirstPost,
-                                                new TimePoint(currentOffset + result.size() - 1,
+                                        Backup.this.tailFound = true;
+                                        updateState(Backup.this.blogFirstPost,
+                                                new TimePoint(Backup.this.currentOffset + result.size() - 1,
                                                         result.get(result.size() - 1).getTimestamp(),
                                                         result.get(result.size() - 1).getId()));
                                     } else {
-                                        updateState(blogFirstPost, null);
+                                        updateState(Backup.this.blogFirstPost, null);
                                     }
 
-                                    currentOffset = (emptyBackup) ? (result.size() - pinnedItems)
-                                            : Math.min(totalPosts - 1,
-                                                    (backupState.getEnd().getIndex() + savedFromHead));
+                                    Backup.this.currentOffset = (emptyBackup) ? (result.size() - pinnedItems)
+                                            : Math.min(Backup.this.totalPosts - 1,
+                                                    (Backup.this.backupState.getEnd().getIndex()
+                                                            + Backup.this.savedFromHead));
 
-                                    if (currentOffset < totalPosts) {
+                                    if (Backup.this.currentOffset < Backup.this.totalPosts) {
                                         downloadTail();
                                     } else {
-                                        isRunning.set(false);
-                                        progress.onCompleted(true);
+                                        Backup.this.isRunning.set(false);
+                                        Backup.this.progress.onCompleted(true);
                                     }
                                 }
                             }
 
                             @Override
                             public void onFailure(BaseException e) {
-                                isRunning.set(false);
-                                progress.onCompleted(false);
+                                Backup.this.isRunning.set(false);
+                                Backup.this.progress.onCompleted(false);
 
                                 e.printStackTrace();
                             }
@@ -403,23 +407,23 @@ public class Backup {
             }
         });
 
-        esTC.start();
+        this.esTC.start();
         joinThread(prevT);
     }
 
     private void downloadTail() {
-        Thread prevT = esTC;
+        Thread prevT = this.esTC;
 
-        esTC = new Thread(new Runnable() {
+        this.esTC = new Thread(new Runnable() {
 
             @Override
             public void run() {
-                tc.call(Posts.Api.class, blogName, currentOffset, 20,
+                Backup.this.tumblrClient.call(Posts.Api.class, Backup.this.blogName, Backup.this.currentOffset, 20,
                         new com.github.savemytumblr.api.array.CompletionInterface<Post.Item, Post.Data>() {
                             @Override
-                            public void onSuccess(List<Post.Item> result, int offset, int limit, int count) {
-                                if (terminate.get()) {
-                                    isRunning.set(false);
+                            public void onSuccess(List<Post.Item> result, Integer offset, Integer limit, int count) {
+                                if (Backup.this.terminate.get()) {
+                                    Backup.this.isRunning.set(false);
                                     return;
                                 }
 
@@ -432,40 +436,42 @@ public class Backup {
 
                                 int index = 0;
 
-                                if (!tailFound) {
-                                    if (result.get(index).getTimestamp().equals(backupState.getEnd().getTimestamp())) {
+                                if (!Backup.this.tailFound) {
+                                    if (result.get(index).getTimestamp()
+                                            .equals(Backup.this.backupState.getEnd().getTimestamp())) {
                                         ++index;
-                                        tailFound = true;
+                                        Backup.this.tailFound = true;
                                     } else if (result.get(index).getTimestamp()
-                                            .before(backupState.getEnd().getTimestamp())) {
-                                        currentOffset -= 20;
+                                            .before(Backup.this.backupState.getEnd().getTimestamp())) {
+                                        Backup.this.currentOffset -= 20;
                                         downloadTail();
                                         return;
                                     } else {
                                         while ((index < result.size()) && result.get(index).getTimestamp()
-                                                .after(backupState.getEnd().getTimestamp())) {
+                                                .after(Backup.this.backupState.getEnd().getTimestamp())) {
                                             ++index;
                                         }
 
                                         if (index == result.size()) {
-                                            int newOffset = currentOffset + 20;
+                                            int newOffset = Backup.this.currentOffset + 20;
 
-                                            if (newOffset > totalPosts) {
+                                            if (newOffset > Backup.this.totalPosts) {
                                                 Post.Item lastItem = result.get(result.size() - 1);
 
-                                                updateState(null, new TimePoint(currentOffset + result.size() - 1,
-                                                        lastItem.getTimestamp(), lastItem.getId()));
-                                                isRunning.set(false);
-                                                progress.onCompleted(false);
+                                                updateState(null,
+                                                        new TimePoint(Backup.this.currentOffset + result.size() - 1,
+                                                                lastItem.getTimestamp(), lastItem.getId()));
+                                                Backup.this.isRunning.set(false);
+                                                Backup.this.progress.onCompleted(false);
                                                 return;
                                             }
 
-                                            currentOffset = newOffset;
+                                            Backup.this.currentOffset = newOffset;
                                             downloadTail();
                                             return;
-                                        } else {
-                                            tailFound = true;
                                         }
+
+                                        Backup.this.tailFound = true;
                                     }
                                 }
 
@@ -479,35 +485,35 @@ public class Backup {
                                     try {
                                         savePost(item);
                                     } catch (Exception e) {
-                                        isRunning.set(false);
-                                        progress.onCompleted(false);
+                                        Backup.this.isRunning.set(false);
+                                        Backup.this.progress.onCompleted(false);
                                         e.printStackTrace();
                                         return;
                                     }
-                                    updateState(null,
-                                            new TimePoint(currentOffset + index, item.getTimestamp(), item.getId()));
+                                    updateState(null, new TimePoint(Backup.this.currentOffset + index,
+                                            item.getTimestamp(), item.getId()));
 
-                                    if (terminate.get()) {
-                                        isRunning.set(false);
+                                    if (Backup.this.terminate.get()) {
+                                        Backup.this.isRunning.set(false);
                                         return;
                                     }
                                 }
 
-                                currentOffset += result.size();
-                                progress.progress(currentOffset, totalPosts);
+                                Backup.this.currentOffset += result.size();
+                                Backup.this.progress.progress(Backup.this.currentOffset, Backup.this.totalPosts);
 
-                                if (currentOffset < totalPosts) {
+                                if (Backup.this.currentOffset < Backup.this.totalPosts) {
                                     downloadTail();
                                 } else {
-                                    isRunning.set(false);
-                                    progress.onCompleted(true);
+                                    Backup.this.isRunning.set(false);
+                                    Backup.this.progress.onCompleted(true);
                                 }
                             }
 
                             @Override
                             public void onFailure(BaseException e) {
-                                isRunning.set(false);
-                                progress.onCompleted(false);
+                                Backup.this.isRunning.set(false);
+                                Backup.this.progress.onCompleted(false);
 
                                 e.printStackTrace();
                             }
@@ -515,7 +521,7 @@ public class Backup {
             }
         });
 
-        esTC.start();
+        this.esTC.start();
         joinThread(prevT);
     }
 
@@ -528,36 +534,37 @@ public class Backup {
             JSONObject jsonRoot = new JSONObject(
                     new String(Files.readAllBytes(this.blogPath.resolve("data.json")), StandardCharsets.UTF_8));
 
-            backupState = new BackupState(jsonRoot);
-        } catch (NoSuchFileException e) {
-            backupState = new BackupState();
+            this.backupState = new BackupState(jsonRoot);
+        } catch (@SuppressWarnings("unused") NoSuchFileException e) {
+            this.backupState = new BackupState();
         } catch (Exception e) {
             e.printStackTrace();
-            backupState = new BackupState();
+            this.backupState = new BackupState();
         }
 
-        currentOffset = 0;
-        totalPosts = 0;
-        savedFromHead = 0;
-        blogFirstPost = null;
-        tailFound = false;
+        this.currentOffset = 0;
+        this.totalPosts = 0;
+        this.savedFromHead = 0;
+        this.blogFirstPost = null;
+        this.tailFound = false;
 
-        terminate.set(false);
-        isRunning.set(true);
+        this.terminate.set(false);
+        this.isRunning.set(true);
 
-        tc.call(Info.Api.class, blogName, new com.github.savemytumblr.api.simple.CompletionInterface<Info.Data>() {
-            @Override
-            public void onSuccess(Info.Data result) {
-                totalPosts = result.getTotalPosts();
-                downloadHead();
-            }
+        this.tumblrClient.call(Info.Api.class, this.blogName,
+                new com.github.savemytumblr.api.simple.CompletionInterface<Info.Data>() {
+                    @Override
+                    public void onSuccess(Info.Data result) {
+                        Backup.this.totalPosts = result.getTotalPosts();
+                        downloadHead();
+                    }
 
-            @Override
-            public void onFailure(BaseException e) {
-                progress.onCompleted(false);
-                isRunning.set(false);
-            }
-        });
+                    @Override
+                    public void onFailure(BaseException e) {
+                        Backup.this.progress.onCompleted(false);
+                        Backup.this.isRunning.set(false);
+                    }
+                });
     }
 
     public void stop() {
@@ -565,11 +572,11 @@ public class Backup {
             return;
         }
 
-        terminate.set(true);
-        joinThread(esTC);
+        this.terminate.set(true);
+        joinThread(this.esTC);
     }
 
     public boolean isRunning() {
-        return isRunning.get();
+        return this.isRunning.get();
     }
 }

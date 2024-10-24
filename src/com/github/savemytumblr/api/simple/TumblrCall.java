@@ -29,10 +29,10 @@ public class TumblrCall<T> extends com.github.savemytumblr.api.TumblrCall<T> {
     private final CompletionInterface<T> onCompletion;
 
     protected TumblrCall(Executor executor, Logger logger, Api<T> api, Map<String, String> queryParams,
-            AuthInterface authInterface, CompletionInterface<T> onCompletion) {
-        super(executor, logger, api, queryParams, authInterface, onCompletion);
+            AuthInterface authInterface, CompletionInterface<T> iOnCompletion) {
+        super(executor, logger, api, queryParams, authInterface, iOnCompletion);
 
-        this.onCompletion = onCompletion;
+        this.onCompletion = iOnCompletion;
     }
 
     @Override
@@ -40,7 +40,7 @@ public class TumblrCall<T> extends com.github.savemytumblr.api.TumblrCall<T> {
         getExecutor().execute(new Runnable() {
             @Override
             public void run() {
-                onCompletion.onSuccess(output);
+                TumblrCall.this.onCompletion.onSuccess(output);
             }
         });
     }

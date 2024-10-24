@@ -40,20 +40,20 @@ public interface Likes {
 
             this.posts = new ArrayList<>();
 
-            JSONArray posts = postsObject.getJSONArray("liked_posts");
-            for (int i = 0; i < posts.length(); ++i) {
-                this.posts.add(new Post.Item(posts.getJSONObject(i)));
+            JSONArray jsonPosts = postsObject.getJSONArray("liked_posts");
+            for (int i = 0; i < jsonPosts.length(); ++i) {
+                this.posts.add(new Post.Item(jsonPosts.getJSONObject(i)));
             }
         }
 
         @Override
         public int getCount() {
-            return count;
+            return this.count;
         }
 
         @Override
         public List<Post.Item> getItems() {
-            return posts;
+            return this.posts;
         }
     }
 

@@ -47,34 +47,34 @@ public class Media {
     }
 
     public String getUrl() {
-        return url;
+        return this.url;
     }
 
     public String getMimeType() {
-        return mimeType;
+        return this.mimeType;
     }
 
     public boolean areOriginalDimensionsMissing() {
-        return originalDimensionsMissing;
+        return this.originalDimensionsMissing;
     }
 
     public boolean isCropped() {
-        return cropped;
+        return this.cropped;
     }
 
     public boolean hasOriginalDimensions() {
-        return hasOriginalDimensions;
+        return this.hasOriginalDimensions;
     }
 
     public int getWidth() {
-        return width;
+        return this.width;
     }
 
     public int getHeight() {
-        return height;
+        return this.height;
     }
 
     public Media getPoster() {
-        return poster;
+        return this.poster;
     }
 }

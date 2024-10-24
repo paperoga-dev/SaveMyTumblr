@@ -12,29 +12,29 @@ public class Url {
     String path;
     Map<String, String> bodyParams = new HashMap<>();
 
-    public Url(String main, String path) {
-        this.main = main;
-        this.path = path;
+    public Url(String sMain, String sPath) {
+        this.main = sMain;
+        this.path = sPath;
     }
 
     public void addParameter(String key, String value) {
-        bodyParams.put(key, value);
+        this.bodyParams.put(key, value);
     }
 
     @Override
     public String toString() {
         String result = "";
 
-        if (!main.isEmpty()) {
-            result += main;
+        if (!this.main.isEmpty()) {
+            result += this.main;
         }
 
-        if (!path.isEmpty()) {
-            result += path;
+        if (!this.path.isEmpty()) {
+            result += this.path;
         }
 
-        List<String> qParams = new ArrayList<String>();
-        for (Map.Entry<String, ?> entry : bodyParams.entrySet()) {
+        List<String> qParams = new ArrayList<>();
+        for (Map.Entry<String, ?> entry : this.bodyParams.entrySet()) {
             qParams.add(URLEncoder.encode(entry.getKey(), StandardCharsets.UTF_8) + "="
                     + URLEncoder.encode(entry.getValue().toString(), StandardCharsets.UTF_8));
         }

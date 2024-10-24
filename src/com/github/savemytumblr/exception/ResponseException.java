@@ -23,18 +23,18 @@ public class ResponseException extends BaseException {
     private final int responseCode;
     private final String responseMessage;
 
-    public ResponseException(int responseCode, String responseMessage) {
-        super(responseMessage);
+    public ResponseException(int iResponseCode, String sResponseMessage) {
+        super(sResponseMessage);
 
-        this.responseCode = responseCode;
-        this.responseMessage = responseMessage;
+        this.responseCode = iResponseCode;
+        this.responseMessage = sResponseMessage;
     }
 
     public int getResponseCode() {
-        return responseCode;
+        return this.responseCode;
     }
 
     public String getResponseMessage() {
-        return responseMessage;
+        return this.responseMessage;
     }
 }

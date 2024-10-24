@@ -37,9 +37,9 @@ public class Ask extends LayoutItem {
 
         this.blocks = new ArrayList<>();
 
-        JSONArray blocks = layoutObject.getJSONArray("blocks");
-        for (int i = 0; i < blocks.length(); ++i) {
-            this.blocks.add(blocks.getInt(i));
+        JSONArray jsonBlocks = layoutObject.getJSONArray("blocks");
+        for (int i = 0; i < jsonBlocks.length(); ++i) {
+            this.blocks.add(jsonBlocks.getInt(i));
         }
 
         JSONObject attributionObject = layoutObject.optJSONObject("attribution");
@@ -52,11 +52,11 @@ public class Ask extends LayoutItem {
     }
 
     public List<Integer> getBlocks() {
-        return blocks;
+        return this.blocks;
     }
 
     public Base getAttribution() {
-        return attribution;
+        return this.attribution;
     }
 
     public static LayoutItem doCreate(JSONObject layoutObject)

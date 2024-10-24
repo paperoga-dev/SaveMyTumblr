@@ -45,19 +45,19 @@ public interface Followers {
         }
 
         public String getName() {
-            return name;
+            return this.name;
         }
 
         public boolean isFollowing() {
-            return following;
+            return this.following;
         }
 
         public String getUrl() {
-            return url;
+            return this.url;
         }
 
         public Date getUpdated() {
-            return updated;
+            return this.updated;
         }
     }
 
@@ -71,20 +71,20 @@ public interface Followers {
             this.totalUsers = followersObject.getInt("total_users");
             this.users = new ArrayList<>();
 
-            JSONArray users = followersObject.getJSONArray("users");
-            for (int i = 0; i < users.length(); ++i) {
-                this.users.add(new User(users.getJSONObject(i)));
+            JSONArray jsonUsers = followersObject.getJSONArray("users");
+            for (int i = 0; i < jsonUsers.length(); ++i) {
+                this.users.add(new User(jsonUsers.getJSONObject(i)));
             }
         }
 
         @Override
         public int getCount() {
-            return totalUsers;
+            return this.totalUsers;
         }
 
         @Override
         public List<User> getItems() {
-            return users;
+            return this.users;
         }
     }
 

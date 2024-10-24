@@ -54,11 +54,11 @@ public class Rows extends LayoutItem {
         }
 
         public List<Integer> getIndexes() {
-            return indexes;
+            return this.indexes;
         }
 
         public Type getType() {
-            return type;
+            return this.type;
         }
     }
 
@@ -76,7 +76,7 @@ public class Rows extends LayoutItem {
     }
 
     public List<Blocks> getBlocksList() {
-        return blocksList;
+        return this.blocksList;
     }
 
     public static LayoutItem doCreate(JSONObject layoutObject) throws JSONException {

@@ -69,13 +69,13 @@ public abstract class Base extends ContentItem {
         this.text = textObject.getString("text");
 
         this.formattingItems = new ArrayList<>();
-        JSONArray formattingItems = textObject.optJSONArray("formatting");
-        if (formattingItems == null) {
+        JSONArray jsonFormattingItems = textObject.optJSONArray("formatting");
+        if (jsonFormattingItems == null) {
             return;
         }
 
-        for (int i = 0; i < formattingItems.length(); ++i) {
-            JSONObject formattingItem = formattingItems.getJSONObject(i);
+        for (int i = 0; i < jsonFormattingItems.length(); ++i) {
+            JSONObject formattingItem = jsonFormattingItems.getJSONObject(i);
             String type = formattingItem.getString("type");
             try {
                 this.formattingItems.add(formattingTypesMap.get(type).getDeclaredConstructor(JSONObject.class)
@@ -110,11 +110,11 @@ public abstract class Base extends ContentItem {
     }
 
     public List<com.github.savemytumblr.posts.text.formatting.Base> getFormattingItems() {
-        return formattingItems;
+        return this.formattingItems;
     }
 
     public String getText() {
-        return text;
+        return this.text;
     }
 
     public String getFormattedText() {

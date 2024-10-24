@@ -52,15 +52,15 @@ public interface Info {
         }
 
         public String getName() {
-            return name;
+            return this.name;
         }
 
         public String getUrl() {
-            return url;
+            return this.url;
         }
 
         public String getUuid() {
-            return uuid;
+            return this.uuid;
         }
     }
 
@@ -86,15 +86,15 @@ public interface Info {
         }
 
         public String getDescription() {
-            return description;
+            return this.description;
         }
 
         public String getTitle() {
-            return title;
+            return this.title;
         }
 
         public Date getUpdated() {
-            return updated;
+            return this.updated;
         }
     }
 
@@ -115,27 +115,27 @@ public interface Info {
          */
 
         SubmissionTerms(JSONObject jsonSubmissionTermsObject) throws JSONException {
-            JSONArray acceptedTypes = jsonSubmissionTermsObject.getJSONArray("accepted_types");
+            JSONArray jsonAcceptedTypes = jsonSubmissionTermsObject.getJSONArray("accepted_types");
 
             this.acceptedTypes = new HashSet<>();
-            for (int i = 0; i < acceptedTypes.length(); ++i) {
-                if (acceptedTypes.getString(i).equalsIgnoreCase("text")) {
+            for (int i = 0; i < jsonAcceptedTypes.length(); ++i) {
+                if (jsonAcceptedTypes.getString(i).equalsIgnoreCase("text")) {
                     this.acceptedTypes.add(AcceptedTypes.Text);
-                } else if (acceptedTypes.getString(i).equalsIgnoreCase("photo")) {
+                } else if (jsonAcceptedTypes.getString(i).equalsIgnoreCase("photo")) {
                     this.acceptedTypes.add(AcceptedTypes.Photo);
-                } else if (acceptedTypes.getString(i).equalsIgnoreCase("quote")) {
+                } else if (jsonAcceptedTypes.getString(i).equalsIgnoreCase("quote")) {
                     this.acceptedTypes.add(AcceptedTypes.Quote);
-                } else if (acceptedTypes.getString(i).equalsIgnoreCase("link")) {
+                } else if (jsonAcceptedTypes.getString(i).equalsIgnoreCase("link")) {
                     this.acceptedTypes.add(AcceptedTypes.Link);
-                } else if (acceptedTypes.getString(i).equalsIgnoreCase("video")) {
+                } else if (jsonAcceptedTypes.getString(i).equalsIgnoreCase("video")) {
                     this.acceptedTypes.add(AcceptedTypes.Video);
                 }
             }
 
-            JSONArray tags = jsonSubmissionTermsObject.getJSONArray("tags");
+            JSONArray jsonTags = jsonSubmissionTermsObject.getJSONArray("tags");
             this.tags = new HashSet<>();
-            for (int i = 0; i < tags.length(); ++i) {
-                this.tags.add(tags.getString(i));
+            for (int i = 0; i < jsonTags.length(); ++i) {
+                this.tags.add(jsonTags.getString(i));
             }
 
             this.title = jsonSubmissionTermsObject.getString("title");
@@ -143,19 +143,19 @@ public interface Info {
         }
 
         public Set<AcceptedTypes> getAcceptedTypes() {
-            return acceptedTypes;
+            return this.acceptedTypes;
         }
 
         public Set<String> getTags() {
-            return tags;
+            return this.tags;
         }
 
         public String getTitle() {
-            return title;
+            return this.title;
         }
 
         public String getGuidelines() {
-            return guidelines;
+            return this.guidelines;
         }
     }
 
@@ -208,11 +208,11 @@ public interface Info {
             this.askAnon = blogObject.getBoolean("ask_anon");
             this.askPageTitle = blogObject.getString("ask_page_title");
 
-            JSONArray avatars = blogObject.getJSONArray("avatar");
+            JSONArray jsonAvatars = blogObject.getJSONArray("avatar");
 
             this.avatars = new ArrayList<>();
-            for (int i = 0; i < avatars.length(); ++i) {
-                this.avatars.add(new Avatar.Data(avatars.getJSONObject(i)));
+            for (int i = 0; i < jsonAvatars.length(); ++i) {
+                this.avatars.add(new Avatar.Data(jsonAvatars.getJSONObject(i)));
             }
 
             this.canChat = blogObject.optBoolean("can_chat", false);
@@ -238,10 +238,10 @@ public interface Info {
             this.subscribed = blogObject.getBoolean("subscribed");
             this.totalPosts = blogObject.getInt("total_posts");
 
-            String tweet = blogObject.optString("tweet", "N");
-            if (tweet.equalsIgnoreCase("Auto")) {
+            String sTweet = blogObject.optString("tweet", "N");
+            if (sTweet.equalsIgnoreCase("Auto")) {
                 this.tweet = Tweet.Auto;
-            } else if (tweet.equalsIgnoreCase("Y")) {
+            } else if (sTweet.equalsIgnoreCase("Y")) {
                 this.tweet = Tweet.Yes;
             } else {
                 this.tweet = Tweet.No;
@@ -258,119 +258,119 @@ public interface Info {
         }
 
         public boolean isAdmin() {
-            return admin;
+            return this.admin;
         }
 
         public boolean isAsk() {
-            return ask;
+            return this.ask;
         }
 
         public boolean isAskAnon() {
-            return askAnon;
+            return this.askAnon;
         }
 
         public String getAskPageTitle() {
-            return askPageTitle;
+            return this.askPageTitle;
         }
 
         public List<Avatar.Data> getAvatars() {
-            return avatars;
+            return this.avatars;
         }
 
         public boolean isCanChat() {
-            return canChat;
+            return this.canChat;
         }
 
         public boolean isCanSendFanMail() {
-            return canSendFanMail;
+            return this.canSendFanMail;
         }
 
         public boolean isCanSubmit() {
-            return canSubmit;
+            return this.canSubmit;
         }
 
         public boolean isCanSubscribe() {
-            return canSubscribe;
+            return this.canSubscribe;
         }
 
         public int getDrafts() {
-            return drafts;
+            return this.drafts;
         }
 
         public boolean isFacebook() {
-            return facebook;
+            return this.facebook;
         }
 
         public boolean isFacebookOpengraphEnabled() {
-            return facebookOpengraphEnabled;
+            return this.facebookOpengraphEnabled;
         }
 
         public boolean isFollowed() {
-            return followed;
+            return this.followed;
         }
 
         public int getFollowers() {
-            return followers;
+            return this.followers;
         }
 
         public boolean isBlockedFromPrimary() {
-            return isBlockedFromPrimary;
+            return this.isBlockedFromPrimary;
         }
 
         public boolean isNSFW() {
-            return isNSFW;
+            return this.isNSFW;
         }
 
         public int getMessages() {
-            return messages;
+            return this.messages;
         }
 
         public int getPosts() {
-            return posts;
+            return this.posts;
         }
 
         public boolean isPrimary() {
-            return primary;
+            return this.primary;
         }
 
         public int getQueue() {
-            return queue;
+            return this.queue;
         }
 
         public boolean isShareLikes() {
-            return shareLikes;
+            return this.shareLikes;
         }
 
         public String getSubmissionPageTitle() {
-            return submissionPageTitle;
+            return this.submissionPageTitle;
         }
 
         public SubmissionTerms getSubmissionTerms() {
-            return submissionTerms;
+            return this.submissionTerms;
         }
 
         public boolean isSubscribed() {
-            return subscribed;
+            return this.subscribed;
         }
 
         public int getTotalPosts() {
-            return totalPosts;
+            return this.totalPosts;
         }
 
         public Tweet getTweet() {
-            return tweet;
+            return this.tweet;
         }
 
         public boolean isTwitterEnabled() {
-            return twitterEnabled;
+            return this.twitterEnabled;
         }
 
         public boolean isTwitterSend() {
-            return twitterSend;
+            return this.twitterSend;
         }
 
         public Type getType() {
-            return type;
+            return this.type;
         }
     }
 

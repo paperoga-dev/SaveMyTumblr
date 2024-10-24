@@ -32,7 +32,7 @@ public class OrderedListItem extends Base {
     }
 
     public int getOrderNumber() {
-        return orderNumber;
+        return this.orderNumber;
     }
 
     @Override

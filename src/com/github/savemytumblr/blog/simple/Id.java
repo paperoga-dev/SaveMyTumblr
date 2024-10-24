@@ -23,8 +23,8 @@ import com.github.savemytumblr.api.simple.Api;
 public abstract class Id<T> extends Api<T> implements ApiInterface<T> {
     private final String blogId;
 
-    protected Id(String blogId) {
-        this.blogId = blogId;
+    protected Id(String sBlogId) {
+        this.blogId = sBlogId;
     }
 
     @Override
@@ -38,6 +38,6 @@ public abstract class Id<T> extends Api<T> implements ApiInterface<T> {
 
     @Override
     public String getBlogId() {
-        return blogId;
+        return this.blogId;
     }
 }

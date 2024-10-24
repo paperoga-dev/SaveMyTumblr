@@ -55,7 +55,7 @@ public interface Post {
         }
 
         public long getId() {
-            return id;
+            return this.id;
         }
     }
 
@@ -89,31 +89,32 @@ public interface Post {
         private void loadContent(JSONObject postObject)
                 throws JSONException, com.github.savemytumblr.exception.RuntimeException {
             this.content = new ArrayList<>();
-            JSONArray content = postObject.getJSONArray("content");
-            for (int i = 0; i < content.length(); ++i) {
-                ContentItem newItem = ContentItem.create(content.getJSONObject(i));
+            JSONArray jsonContent = postObject.getJSONArray("content");
+            for (int i = 0; i < jsonContent.length(); ++i) {
+                ContentItem newItem = ContentItem.create(jsonContent.getJSONObject(i));
                 if (newItem != null) {
                     this.content.add(newItem);
                 }
             }
 
             this.layout = new ArrayList<>();
-            JSONArray layout = postObject.optJSONArray("layout");
-            if (layout != null) {
-                for (int i = 0; i < layout.length(); ++i) {
-                    this.layout.add(LayoutItem.create(layout.getJSONObject(i)));
+            JSONArray jsonLayout = postObject.optJSONArray("layout");
+            if (jsonLayout != null) {
+                for (int i = 0; i < jsonLayout.length(); ++i) {
+                    this.layout.add(LayoutItem.create(jsonLayout.getJSONObject(i)));
                 }
             }
 
             this.trail = new ArrayList<>();
-            JSONArray trail = postObject.optJSONArray("trail");
-            if (trail != null) {
-                for (int i = 0; i < trail.length(); ++i) {
-                    String brokenBlogName = trail.getJSONObject(i).optString("broken_blog_name", null);
+            JSONArray jsonTrail = postObject.optJSONArray("trail");
+            if (jsonTrail != null) {
+                for (int i = 0; i < jsonTrail.length(); ++i) {
+                    String brokenBlogName = jsonTrail.getJSONObject(i).optString("broken_blog_name", null);
                     if (brokenBlogName != null) {
-                        this.trail.add(new Trail(trail.getJSONObject(i), brokenBlogName));
+                        this.trail.add(new Trail(jsonTrail.getJSONObject(i), brokenBlogName));
                     } else {
-                        this.trail.add(new Trail(trail.getJSONObject(i), trail.getJSONObject(i).getJSONObject("post")));
+                        this.trail.add(new Trail(jsonTrail.getJSONObject(i),
+                                jsonTrail.getJSONObject(i).getJSONObject("post")));
                     }
                 }
             }
@@ -124,31 +125,31 @@ public interface Post {
         }
 
         public Info.Base getBlog() {
-            return blog;
+            return this.blog;
         }
 
         public List<ContentItem> getContent() {
-            return content;
+            return this.content;
         }
 
         public List<LayoutItem> getLayout() {
-            return layout;
+            return this.layout;
         }
 
         public List<Trail> getTrail() {
-            return trail;
+            return this.trail;
         }
 
         public String getAskingName() {
-            return askingName;
+            return this.askingName;
         }
 
         public String getAskingUrl() {
-            return askingUrl;
+            return this.askingUrl;
         }
 
         public boolean isPinned() {
-            return isPinned;
+            return this.isPinned;
         }
 
         public List<List<Integer>> getBlocksLayout() {
@@ -279,43 +280,43 @@ public interface Post {
         public Item(JSONObject postObject) throws JSONException, com.github.savemytumblr.exception.RuntimeException {
             super(postObject, postObject);
 
-            json = postObject.toString(2);
+            this.json = postObject.toString(2);
             this.timestamp = new Date(postObject.getLong("timestamp") * 1000L);
             this.url = postObject.getString("post_url");
             this.shortUrl = postObject.getString("short_url");
             this.summary = postObject.optString("summary", "");
 
             this.tags = new ArrayList<>();
-            JSONArray tags = postObject.optJSONArray("tags");
-            if (tags != null) {
-                for (int i = 0; i < tags.length(); ++i) {
-                    this.tags.add(tags.getString(i));
+            JSONArray jsonTags = postObject.optJSONArray("tags");
+            if (jsonTags != null) {
+                for (int i = 0; i < jsonTags.length(); ++i) {
+                    this.tags.add(jsonTags.getString(i));
                 }
             }
         }
 
         public Date getTimestamp() {
-            return timestamp;
+            return this.timestamp;
         }
 
         public List<String> getTags() {
-            return tags;
+            return this.tags;
         }
 
         public String getUrl() {
-            return url;
+            return this.url;
         }
 
         public String getShortUrl() {
-            return shortUrl;
+            return this.shortUrl;
         }
 
         public String getSummary() {
-            return summary;
+            return this.summary;
         }
 
         public String getJSON() {
-            return json;
+            return this.json;
         }
 
         @Override
@@ -344,20 +345,20 @@ public interface Post {
             this.totalPosts = postsObject.getInt("total_posts");
             this.posts = new ArrayList<>();
 
-            JSONArray posts = postsObject.getJSONArray("posts");
-            for (int i = 0; i < posts.length(); ++i) {
-                this.posts.add(new Item(posts.getJSONObject(i)));
+            JSONArray jsonPosts = postsObject.getJSONArray("posts");
+            for (int i = 0; i < jsonPosts.length(); ++i) {
+                this.posts.add(new Item(jsonPosts.getJSONObject(i)));
             }
         }
 
         @Override
         public int getCount() {
-            return totalPosts;
+            return this.totalPosts;
         }
 
         @Override
         public List<Item> getItems() {
-            return posts;
+            return this.posts;
         }
     }
 }

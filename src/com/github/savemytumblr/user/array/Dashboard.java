@@ -39,9 +39,9 @@ public interface Dashboard {
 
             this.posts = new ArrayList<>();
 
-            JSONArray posts = postsObject.getJSONArray("posts");
-            for (int i = 0; i < posts.length(); ++i) {
-                this.posts.add(new Post.Item(posts.getJSONObject(i)));
+            JSONArray jsonPosts = postsObject.getJSONArray("posts");
+            for (int i = 0; i < jsonPosts.length(); ++i) {
+                this.posts.add(new Post.Item(jsonPosts.getJSONObject(i)));
             }
         }
 
@@ -52,7 +52,7 @@ public interface Dashboard {
 
         @Override
         public List<Post.Item> getItems() {
-            return posts;
+            return this.posts;
         }
     }
 

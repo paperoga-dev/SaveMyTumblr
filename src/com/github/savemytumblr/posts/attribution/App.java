@@ -38,15 +38,15 @@ public class App extends Base {
     }
 
     public String getName() {
-        return name;
+        return this.name;
     }
 
     public String getDisplayText() {
-        return displayText;
+        return this.displayText;
     }
 
     public Media getLogo() {
-        return logo;
+        return this.logo;
     }
 
     public static Base doCreate(JSONObject attributionObject)

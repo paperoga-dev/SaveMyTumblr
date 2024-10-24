@@ -34,20 +34,20 @@ public class Authenticate {
         private final Executor executor;
         private final OnAuthenticationListener onAuthenticationListener;
 
-        AuthorizationRequestTask(Executor executor, OnAuthenticationListener onAuthenticationListener) {
+        AuthorizationRequestTask(Executor cExecutor, OnAuthenticationListener iOnAuthenticationListener) {
             super();
 
-            this.executor = executor;
-            this.onAuthenticationListener = onAuthenticationListener;
+            this.executor = cExecutor;
+            this.onAuthenticationListener = iOnAuthenticationListener;
         }
 
         @Override
         public void run() {
-            if (onAuthenticationListener == null) {
+            if (this.onAuthenticationListener == null) {
                 return;
             }
 
-            executor.execute(new Runnable() {
+            this.executor.execute(new Runnable() {
                 @Override
                 public void run() {
                     final String state = UUID.randomUUID().toString();
@@ -58,7 +58,8 @@ public class Authenticate {
                     url.addParameter("scope", "write offline_access");
                     url.addParameter("state", state);
                     url.addParameter("redirect_uri", Constants.CALLBACK_URL);
-                    onAuthenticationListener.onAuthenticationRequest(url.toString(), state);
+                    AuthorizationRequestTask.this.onAuthenticationListener.onAuthenticationRequest(url.toString(),
+                            state);
                 }
             });
         }
@@ -69,22 +70,22 @@ public class Authenticate {
         private final String authCode;
         private final OnAuthenticationListener onAuthenticationListener;
 
-        GetAccessTokenTask(Executor executor, String authCode, OnAuthenticationListener onAuthenticationListener) {
+        GetAccessTokenTask(Executor cExecutor, String sAuthCode, OnAuthenticationListener iOnAuthenticationListener) {
             super();
 
-            this.executor = executor;
-            this.authCode = authCode;
-            this.onAuthenticationListener = onAuthenticationListener;
+            this.executor = cExecutor;
+            this.authCode = sAuthCode;
+            this.onAuthenticationListener = iOnAuthenticationListener;
         }
 
         @Override
         public void run() {
-            if (onAuthenticationListener == null) {
+            if (this.onAuthenticationListener == null) {
                 return;
             }
 
             try {
-                executor.execute(new Runnable() {
+                this.executor.execute(new Runnable() {
                     @Override
                     public void run() {
                         try {
@@ -94,7 +95,9 @@ public class Authenticate {
                                     .header("Content-Type", "application/x-www-form-urlencoded")
                                     .POST(BodyPublishers.ofString("grant_type="
                                             + URLEncoder.encode("authorization_code", StandardCharsets.UTF_8) + "&code="
-                                            + URLEncoder.encode(authCode, StandardCharsets.UTF_8) + "&client_id="
+                                            + URLEncoder.encode(GetAccessTokenTask.this.authCode,
+                                                    StandardCharsets.UTF_8)
+                                            + "&client_id="
                                             + URLEncoder.encode(dotenv.get("CONSUMER_KEY"), StandardCharsets.UTF_8)
                                             + "&client_secret="
                                             + URLEncoder.encode(dotenv.get("CONSUMER_SECRET"), StandardCharsets.UTF_8)
@@ -102,22 +105,25 @@ public class Authenticate {
                                             + URLEncoder.encode(Constants.CALLBACK_URL, StandardCharsets.UTF_8)))
                                     .build();
 
-                            HttpResponse<String> response = HttpClient.newHttpClient().send(request,
-                                    HttpResponse.BodyHandlers.ofString());
-                            AccessToken accessToken = null;
-                            if (response.statusCode() == 200) {
-                                JSONObject rootObj = new JSONObject(response.body());
-                                accessToken = new AccessToken(rootObj.getString("access_token"),
-                                        rootObj.getString("refresh_token"));
-                            }
+                            try (HttpClient client = HttpClient.newHttpClient()) {
+                                HttpResponse<String> response = client.send(request,
+                                        HttpResponse.BodyHandlers.ofString());
+                                AccessToken accessToken = null;
+                                if (response.statusCode() == 200) {
+                                    JSONObject rootObj = new JSONObject(response.body());
+                                    accessToken = new AccessToken(rootObj.getString("access_token"),
+                                            rootObj.getString("refresh_token"));
+                                }
 
-                            if (accessToken != null) {
-                                onAuthenticationListener.onAuthenticationGranted(accessToken);
-                            } else {
-                                onAuthenticationListener.onFailure(new Exception("Hey"));
+                                if (accessToken != null) {
+                                    GetAccessTokenTask.this.onAuthenticationListener
+                                            .onAuthenticationGranted(accessToken);
+                                } else {
+                                    GetAccessTokenTask.this.onAuthenticationListener.onFailure(new Exception("Hey"));
+                                }
                             }
                         } catch (Exception e) {
-                            onAuthenticationListener.onFailure(new Exception("Hey"));
+                            GetAccessTokenTask.this.onAuthenticationListener.onFailure(new Exception("Hey"));
                             e.printStackTrace();
                         }
                     }
@@ -128,11 +134,10 @@ public class Authenticate {
             final Exception e) {
                 e.printStackTrace();
 
-                executor.execute(new Runnable() {
-
+                this.executor.execute(new Runnable() {
                     @Override
                     public void run() {
-                        onAuthenticationListener.onFailure(e);
+                        GetAccessTokenTask.this.onAuthenticationListener.onFailure(e);
                     }
                 });
             }
@@ -142,10 +147,10 @@ public class Authenticate {
     public class LogOutputStream extends OutputStream {
         private String mem;
 
-        public LogOutputStream(Logger logger) {
+        public LogOutputStream() {
             super();
 
-            mem = "";
+            this.mem = "";
         }
 
         @Override
@@ -154,14 +159,14 @@ public class Authenticate {
             if (c == '\n') {
                 flush();
             } else {
-                mem += c;
+                this.mem += c;
             }
         }
 
         @Override
         public void flush() {
-            logger.info(mem);
-            mem = "";
+            Authenticate.this.logger.info(this.mem);
+            this.mem = "";
         }
     }
 
@@ -169,28 +174,28 @@ public class Authenticate {
     private final Executor executor;
     private final Logger logger;
 
-    public Authenticate(Executor executor, Logger logger) {
+    public Authenticate(Executor cExecutor, Logger iLogger) {
         super();
 
-        this.executor = executor;
-        this.logger = logger;
+        this.executor = cExecutor;
+        this.logger = iLogger;
         this.onAuthenticationListener = null;
     }
 
     public void request() {
-        if (onAuthenticationListener == null) {
+        if (this.onAuthenticationListener == null) {
             return;
         }
 
-        executor.execute(new AuthorizationRequestTask(executor, onAuthenticationListener));
+        this.executor.execute(new AuthorizationRequestTask(this.executor, this.onAuthenticationListener));
     }
 
     public void getAccessToken(String authCode) {
 
-        executor.execute(new GetAccessTokenTask(executor, authCode, onAuthenticationListener));
+        this.executor.execute(new GetAccessTokenTask(this.executor, authCode, this.onAuthenticationListener));
     }
 
-    public void setOnAuthenticationListener(OnAuthenticationListener onAuthenticationListener) {
-        this.onAuthenticationListener = onAuthenticationListener;
+    public void setOnAuthenticationListener(OnAuthenticationListener iOnAuthenticationListener) {
+        this.onAuthenticationListener = iOnAuthenticationListener;
     }
 }

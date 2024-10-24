@@ -28,12 +28,12 @@ public class TumblrCall<T, W extends ContentInterface<T>> extends com.github.sav
     private final CompletionInterface<T, W> onCompletion;
     private final Api<T, W> api;
 
-    protected TumblrCall(Executor executor, Logger logger, Api<T, W> api, Map<String, String> queryParams,
-            AuthInterface authInterface, CompletionInterface<T, W> onCompletion) {
-        super(executor, logger, api, queryParams, authInterface, onCompletion);
+    protected TumblrCall(Executor executor, Logger logger, Api<T, W> cApi, Map<String, String> queryParams,
+            AuthInterface authInterface, CompletionInterface<T, W> iOnCompletion) {
+        super(executor, logger, cApi, queryParams, authInterface, iOnCompletion);
 
-        this.api = api;
-        this.onCompletion = onCompletion;
+        this.api = cApi;
+        this.onCompletion = iOnCompletion;
     }
 
     @Override
@@ -41,7 +41,8 @@ public class TumblrCall<T, W extends ContentInterface<T>> extends com.github.sav
         getExecutor().execute(new Runnable() {
             @Override
             public void run() {
-                onCompletion.onSuccess(output.getItems(), api.getOffset(), api.getLimit(), output.getCount());
+                TumblrCall.this.onCompletion.onSuccess(output.getItems(), TumblrCall.this.api.getOffset(),
+                        TumblrCall.this.api.getLimit(), output.getCount());
             }
         });
     }

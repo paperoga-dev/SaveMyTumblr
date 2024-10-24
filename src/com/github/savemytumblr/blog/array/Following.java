@@ -39,20 +39,20 @@ public interface Following {
             this.totalBlogs = followingObject.getInt("total_blogs");
 
             this.blogs = new ArrayList<>();
-            JSONArray blogs = followingObject.getJSONArray("blogs");
-            for (int i = 0; i < blogs.length(); ++i) {
-                this.blogs.add(new Info.Base(blogs.getJSONObject(i)));
+            JSONArray jsonBlogs = followingObject.getJSONArray("blogs");
+            for (int i = 0; i < jsonBlogs.length(); ++i) {
+                this.blogs.add(new Info.Base(jsonBlogs.getJSONObject(i)));
             }
         }
 
         @Override
         public int getCount() {
-            return totalBlogs;
+            return this.totalBlogs;
         }
 
         @Override
         public List<Info.Base> getItems() {
-            return blogs;
+            return this.blogs;
         }
     }
 

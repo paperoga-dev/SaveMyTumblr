@@ -24,10 +24,10 @@ import com.github.savemytumblr.api.array.ContentInterface;
 public abstract class Id<T, W extends ContentInterface<T>> extends Api<T, W> implements ApiInterface<T, W> {
     private final String blogId;
 
-    protected Id(Integer offset, Integer limit, String blogId) {
+    protected Id(Integer offset, Integer limit, String sBlogId) {
         super(offset, limit);
 
-        this.blogId = blogId;
+        this.blogId = sBlogId;
     }
 
     @Override
@@ -41,6 +41,6 @@ public abstract class Id<T, W extends ContentInterface<T>> extends Api<T, W> imp
 
     @Override
     public String getBlogId() {
-        return blogId;
+        return this.blogId;
     }
 }

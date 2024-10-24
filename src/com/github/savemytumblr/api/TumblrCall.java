@@ -24,6 +24,7 @@ import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpRequest.BodyPublishers;
 import java.net.http.HttpResponse;
+import java.time.Duration;
 import java.util.Map;
 
 import org.json.JSONException;
@@ -41,66 +42,67 @@ import com.github.savemytumblr.exception.ResponseException;
 import io.github.cdimascio.dotenv.Dotenv;
 
 public abstract class TumblrCall<T> implements Runnable {
-    private final AbstractCompletionInterface<T> onCompletion;
+    private final AbstractCompletionInterface onCompletion;
     private final AuthInterface authInterface;
     private final Api<T> api;
     private final Map<String, String> queryParams;
     private final Executor executor;
     private final Logger logger;
 
-    protected TumblrCall(Executor executor, Logger logger, Api<T> api, Map<String, String> queryParams,
-            AuthInterface authInterface, AbstractCompletionInterface<T> onCompletion) {
+    protected TumblrCall(Executor cExecutor, Logger iLogger, Api<T> cApi, Map<String, String> mQueryParams,
+            AuthInterface iAuthInterface, AbstractCompletionInterface iOnCompletion) {
         super();
 
-        this.api = api;
-        this.onCompletion = onCompletion;
-        this.queryParams = queryParams;
-        this.executor = executor;
-        this.logger = logger;
-        this.authInterface = authInterface;
+        this.api = cApi;
+        this.onCompletion = iOnCompletion;
+        this.queryParams = mQueryParams;
+        this.executor = cExecutor;
+        this.logger = iLogger;
+        this.authInterface = iAuthInterface;
     }
 
     protected abstract void process(final T output);
 
     protected Executor getExecutor() {
-        return executor;
+        return this.executor;
     }
 
     @Override
     public void run() {
-        if (onCompletion == null) {
+        if (this.onCompletion == null) {
             return;
         }
 
         String jsonResponse = null;
         final TumblrCall<T> me = this;
 
-        try {
-            final HttpRequest.Builder requestBuilder = HttpRequest.newBuilder(URI.create(api.setupCall(queryParams)));
-            requestBuilder.setHeader("User-Agent", authInterface.getUserAgent());
-            requestBuilder.setHeader("Authorization", "Bearer " + authInterface.getAccessToken().token);
+        try (HttpClient client = HttpClient.newHttpClient()) {
+            final HttpRequest.Builder requestBuilder = HttpRequest
+                    .newBuilder(URI.create(this.api.setupCall(this.queryParams)));
+            requestBuilder.setHeader("User-Agent", this.authInterface.getUserAgent());
+            requestBuilder.setHeader("Authorization", "Bearer " + this.authInterface.getAccessToken().getToken());
 
             final HttpRequest request = requestBuilder.build();
 
-            logger.info("Request: " + request.toString());
+            this.logger.info("Request: " + request.toString());
 
-            final HttpResponse<String> response = HttpClient.newHttpClient().send(request,
-                    HttpResponse.BodyHandlers.ofString());
+            final HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
 
-            logger.info("Response: " + String.valueOf(response.statusCode()));
+            this.logger.info("Response: " + String.valueOf(response.statusCode()));
 
             switch (response.statusCode()) {
                 case 200:
                 case 201:
                     final JSONObject rootObj = new JSONObject(response.body());
 
-                    logger.info("Response body: " + rootObj.toString(2));
+                    this.logger.info("Response body: " + rootObj.toString(2));
+                    Thread.sleep(Duration.ofMillis(1000));
 
-                    process(api.readData(rootObj.getJSONObject("response")));
+                    process(this.api.readData(rootObj.getJSONObject("response")));
                     break;
 
                 case 401:
-                    executor.execute(new Runnable() {
+                    this.executor.execute(new Runnable() {
                         @Override
                         public void run() {
                             Dotenv dotenv = Dotenv.load();
@@ -109,24 +111,25 @@ public abstract class TumblrCall<T> implements Runnable {
                             url.addParameter("grant_type", "refresh_token");
                             url.addParameter("client_id", dotenv.get("CONSUMER_KEY"));
                             url.addParameter("client_secret", dotenv.get("CONSUMER_SECRET"));
-                            url.addParameter("refresh_token", authInterface.getAccessToken().refreshToken);
+                            url.addParameter("refresh_token",
+                                    TumblrCall.this.authInterface.getAccessToken().getRefreshToken());
 
-                            final HttpRequest request = HttpRequest.newBuilder()
+                            final HttpRequest inRequest = HttpRequest.newBuilder()
                                     .uri(URI.create(Constants.API_ENDPOINT + "/oauth2/token"))
                                     .header("Content-Type", "application/x-www-form-urlencoded")
-                                    .header("User-Agent", authInterface.getUserAgent())
+                                    .header("User-Agent", TumblrCall.this.authInterface.getUserAgent())
                                     .POST(BodyPublishers.ofString(url.toString())).build();
 
-                            HttpResponse<String> response;
-                            try {
-                                response = HttpClient.newHttpClient().send(request,
+                            try (HttpClient inClient = HttpClient.newHttpClient()) {
+                                HttpResponse<String> inResponse = inClient.send(inRequest,
                                         HttpResponse.BodyHandlers.ofString());
-                                switch (response.statusCode()) {
+                                switch (inResponse.statusCode()) {
                                     case 200:
-                                        JSONObject rootObj = new JSONObject(response.body());
-                                        authInterface.onUpdateToken(new AccessToken(rootObj.getString("access_token"),
-                                                rootObj.getString("refresh_token")));
-                                        executor.execute(new Runnable() {
+                                        JSONObject inRootObj = new JSONObject(inResponse.body());
+                                        TumblrCall.this.authInterface
+                                                .onUpdateToken(new AccessToken(inRootObj.getString("access_token"),
+                                                        inRootObj.getString("refresh_token")));
+                                        TumblrCall.this.executor.execute(new Runnable() {
                                             @Override
                                             public void run() {
                                                 me.run();
@@ -135,8 +138,9 @@ public abstract class TumblrCall<T> implements Runnable {
                                         break;
 
                                     default:
-                                        authInterface.onClearToken();
-                                        onCompletion.onFailure(new NetworkException(new Exception("Unauthenticated")));
+                                        TumblrCall.this.authInterface.onClearToken();
+                                        TumblrCall.this.onCompletion
+                                                .onFailure(new NetworkException(new Exception("Unauthenticated")));
                                         break;
                                 }
 
@@ -152,10 +156,10 @@ public abstract class TumblrCall<T> implements Runnable {
                     break;
 
                 default:
-                    executor.execute(new Runnable() {
+                    this.executor.execute(new Runnable() {
                         @Override
                         public void run() {
-                            onCompletion.onFailure(new ResponseException(response.statusCode(), "Hey"));
+                            TumblrCall.this.onCompletion.onFailure(new ResponseException(response.statusCode(), "Hey"));
                         }
                     });
                     break;
@@ -165,19 +169,19 @@ public abstract class TumblrCall<T> implements Runnable {
 
             final String jsonData = jsonResponse;
 
-            executor.execute(new Runnable() {
+            this.executor.execute(new Runnable() {
                 @Override
                 public void run() {
-                    onCompletion.onFailure(new JsonException(e, jsonData));
+                    TumblrCall.this.onCompletion.onFailure(new JsonException(e, jsonData));
                 }
             });
         } catch (final com.github.savemytumblr.exception.RuntimeException e) {
             e.printStackTrace();
 
-            executor.execute(new Runnable() {
+            this.executor.execute(new Runnable() {
                 @Override
                 public void run() {
-                    onCompletion.onFailure(e);
+                    TumblrCall.this.onCompletion.onFailure(e);
                 }
             });
         } catch (IOException e) {

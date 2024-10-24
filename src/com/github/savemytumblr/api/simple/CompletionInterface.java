@@ -20,6 +20,6 @@ package com.github.savemytumblr.api.simple;
 
 import com.github.savemytumblr.api.AbstractCompletionInterface;
 
-public interface CompletionInterface<T> extends AbstractCompletionInterface<T> {
+public interface CompletionInterface<T> extends AbstractCompletionInterface {
     void onSuccess(T result);
 }

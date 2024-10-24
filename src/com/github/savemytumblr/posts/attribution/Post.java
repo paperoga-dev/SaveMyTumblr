@@ -35,11 +35,11 @@ public class Post extends Base {
     }
 
     public com.github.savemytumblr.posts.Post.Base getPost() {
-        return post;
+        return this.post;
     }
 
     public Info.Reference getBlog() {
-        return blog;
+        return this.blog;
     }
 
     public static Base doCreate(JSONObject attributionObject) throws JSONException {

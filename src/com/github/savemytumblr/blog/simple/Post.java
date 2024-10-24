@@ -29,15 +29,15 @@ public interface Post {
     class Api extends Id<com.github.savemytumblr.posts.Post.Item> {
         private final String postId;
 
-        public Api(String blogId, String postId) {
-            super(blogId);
+        public Api(String sBlogId, String sPostId) {
+            super(sBlogId);
 
-            this.postId = postId;
+            this.postId = sPostId;
         }
 
         @Override
         protected String getPath() {
-            return super.getPath() + "/posts/" + postId;
+            return super.getPath() + "/posts/" + this.postId;
         }
 
         @Override

@@ -31,7 +31,7 @@ public class Link extends Base {
     }
 
     public String getUrl() {
-        return url;
+        return this.url;
     }
 
     @Override

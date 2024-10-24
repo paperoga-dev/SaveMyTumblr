@@ -18,7 +18,6 @@
 
 package com.github.savemytumblr.api;
 
-import java.io.UnsupportedEncodingException;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -32,6 +31,7 @@ import io.github.cdimascio.dotenv.Dotenv;
 
 public abstract class Api<T> {
 
+    @SuppressWarnings("static-method")
     protected boolean requiresApiKey() {
         return true;
     }
@@ -52,7 +52,7 @@ public abstract class Api<T> {
     protected abstract T readData(JSONObject jsonObject)
             throws JSONException, com.github.savemytumblr.exception.RuntimeException;
 
-    protected String setupCall(Map<String, ?> queryParams) throws UnsupportedEncodingException {
+    protected String setupCall(Map<String, ?> queryParams) {
         Url url = new Url(Constants.API_ENDPOINT, getPath());
 
         for (Map.Entry<String, ?> entry : defaultParams().entrySet()) {

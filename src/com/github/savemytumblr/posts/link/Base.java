@@ -51,31 +51,31 @@ public class Base extends ContentItem {
     }
 
     public String getUrl() {
-        return url;
+        return this.url;
     }
 
     public String getTitle() {
-        return title;
+        return this.title;
     }
 
     public String getDescription() {
-        return description;
+        return this.description;
     }
 
     public String getAuthor() {
-        return author;
+        return this.author;
     }
 
     public String getSiteName() {
-        return siteName;
+        return this.siteName;
     }
 
     public String getDisplayUrl() {
-        return displayUrl;
+        return this.displayUrl;
     }
 
     public Media getPoster() {
-        return poster;
+        return this.poster;
     }
 
     @Override

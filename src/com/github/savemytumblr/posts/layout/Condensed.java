@@ -37,18 +37,18 @@ public class Condensed extends LayoutItem {
         this.truncateAfter = layoutObject.optInt("truncate_after", -1);
         this.blocks = new ArrayList<>();
 
-        JSONArray blocks = layoutObject.getJSONArray("blocks");
-        for (int i = 0; i < blocks.length(); ++i) {
-            this.blocks.add(blocks.getInt(i));
+        JSONArray jsonBlocks = layoutObject.getJSONArray("blocks");
+        for (int i = 0; i < jsonBlocks.length(); ++i) {
+            this.blocks.add(jsonBlocks.getInt(i));
         }
     }
 
     public List<Integer> getBlocks() {
-        return blocks;
+        return this.blocks;
     }
 
     public int getTruncateAfter() {
-        return truncateAfter;
+        return this.truncateAfter;
     }
 
     public static LayoutItem doCreate(JSONObject layoutObject) throws JSONException {

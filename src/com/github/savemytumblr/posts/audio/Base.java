@@ -61,43 +61,43 @@ public class Base extends ContentItem {
     }
 
     public String getUrl() {
-        return url;
+        return this.url;
     }
 
     public Media getMedia() {
-        return media;
+        return this.media;
     }
 
     public String getProvider() {
-        return provider;
+        return this.provider;
     }
 
     public String getTitle() {
-        return title;
+        return this.title;
     }
 
     public String getArtist() {
-        return artist;
+        return this.artist;
     }
 
     public String getAlbum() {
-        return album;
+        return this.album;
     }
 
     public Media getPoster() {
-        return poster;
+        return this.poster;
     }
 
     public String getEmbedHtml() {
-        return embedHtml;
+        return this.embedHtml;
     }
 
     public String getEmbedUrl() {
-        return embedUrl;
+        return this.embedUrl;
     }
 
     public com.github.savemytumblr.posts.attribution.Base getAttribution() {
-        return attribution;
+        return this.attribution;
     }
 
     public static ContentItem doCreate(JSONObject audioObject)

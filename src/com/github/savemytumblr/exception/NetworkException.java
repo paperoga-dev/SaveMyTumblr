@@ -20,15 +20,15 @@ package com.github.savemytumblr.exception;
 
 public class NetworkException extends BaseException {
     private static final long serialVersionUID = 1L;
-    private final Exception e;
+    private final Exception exception;
 
     public NetworkException(Exception e) {
         super(e.getMessage());
 
-        this.e = e;
+        this.exception = e;
     }
 
     public Exception getException() {
-        return e;
+        return this.exception;
     }
 }

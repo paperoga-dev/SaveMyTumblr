@@ -41,18 +41,18 @@ public class Base extends ContentItem {
     public Base(JSONObject mediaObject) throws JSONException, com.github.savemytumblr.exception.RuntimeException {
         super();
 
-        JSONArray media = mediaObject.getJSONArray("media");
+        JSONArray jsonMedia = mediaObject.getJSONArray("media");
         this.media = new ArrayList<>();
-        for (int i = 0; i < media.length(); ++i) {
-            this.media.add(new Media(media.getJSONObject(i)));
+        for (int i = 0; i < jsonMedia.length(); ++i) {
+            this.media.add(new Media(jsonMedia.getJSONObject(i)));
         }
 
         this.colors = new ArrayList<>();
-        JSONObject colors = mediaObject.optJSONObject("colors");
-        if (colors != null) {
-            Iterator<String> it = colors.keys();
+        JSONObject jsonColors = mediaObject.optJSONObject("colors");
+        if (jsonColors != null) {
+            Iterator<String> it = jsonColors.keys();
             while (it.hasNext()) {
-                this.colors.add(Integer.valueOf(colors.getString(it.next()), 16));
+                this.colors.add(Integer.valueOf(jsonColors.getString(it.next()), 16));
             }
         }
 
@@ -63,23 +63,23 @@ public class Base extends ContentItem {
     }
 
     public List<Media> getMedia() {
-        return media;
+        return this.media;
     }
 
     public List<Integer> getColors() {
-        return colors;
+        return this.colors;
     }
 
     public String getFeedbackToken() {
-        return feedbackToken;
+        return this.feedbackToken;
     }
 
     public com.github.savemytumblr.posts.attribution.Base getAttribution() {
-        return attribution;
+        return this.attribution;
     }
 
     public String getAltText() {
-        return altText;
+        return this.altText;
     }
 
     public static ContentItem doCreate(JSONObject mediaObject)

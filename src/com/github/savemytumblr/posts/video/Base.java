@@ -58,39 +58,39 @@ public class Base extends ContentItem {
     }
 
     public String getUrl() {
-        return url;
+        return this.url;
     }
 
     public Media getMedia() {
-        return media;
+        return this.media;
     }
 
     public String getProvider() {
-        return provider;
+        return this.provider;
     }
 
     public String getEmbedHtml() {
-        return embedHtml;
+        return this.embedHtml;
     }
 
     public EmbedIframe getEmbedIframe() {
-        return embedIframe;
+        return this.embedIframe;
     }
 
     public String getEmbedUrl() {
-        return embedUrl;
+        return this.embedUrl;
     }
 
     public Media getPoster() {
-        return poster;
+        return this.poster;
     }
 
     public com.github.savemytumblr.posts.attribution.Base getAttribution() {
-        return attribution;
+        return this.attribution;
     }
 
     public boolean canAutoPlayOnCellular() {
-        return canAutoPlayOnCellular;
+        return this.canAutoPlayOnCellular;
     }
 
     public static ContentItem doCreate(JSONObject videoObject)

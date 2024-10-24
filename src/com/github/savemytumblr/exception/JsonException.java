@@ -22,21 +22,21 @@ import org.json.JSONException;
 
 public class JsonException extends BaseException {
     private static final long serialVersionUID = 1L;
-    private final JSONException e;
+    private final JSONException exception;
     private final String jsonData;
 
-    public JsonException(JSONException e, String jsonData) {
+    public JsonException(JSONException e, String sJsonData) {
         super(e.getMessage());
 
-        this.e = e;
-        this.jsonData = jsonData;
+        this.exception = e;
+        this.jsonData = sJsonData;
     }
 
     public JSONException getException() {
-        return e;
+        return this.exception;
     }
 
     public String getJsonData() {
-        return jsonData;
+        return this.jsonData;
     }
 }

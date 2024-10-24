@@ -27,7 +27,7 @@ import com.github.savemytumblr.api.array.ContentInterface;
 
 public interface Likes {
     class Post {
-
+        // Just a placeholder
     }
 
     class Data implements ContentInterface<Post> {
@@ -44,12 +44,12 @@ public interface Likes {
 
         @Override
         public List<Post> getItems() {
-            return likedPosts;
+            return this.likedPosts;
         }
 
         @Override
         public int getCount() {
-            return likedCount;
+            return this.likedCount;
         }
     }
 

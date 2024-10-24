@@ -33,10 +33,10 @@ public interface ApiInterface<T, W extends ContentInterface<T>> {
      * Class(Integer offset, Integer limit);
      */
 
-    int getLimit();
+    Integer getLimit();
 
-    int getOffset();
+    Integer getOffset();
 
     Runnable call(Executor executor, Logger logger, List<T> container, Map<String, String> queryParams,
-            AuthInterface authInterface, int offset, int limit, CompletionInterface<T, W> onCompletion);
+            AuthInterface authInterface, Integer offset, Integer limit, CompletionInterface<T, W> onCompletion);
 }

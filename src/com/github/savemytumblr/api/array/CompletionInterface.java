@@ -22,6 +22,7 @@ import java.util.List;
 
 import com.github.savemytumblr.api.AbstractCompletionInterface;
 
-public interface CompletionInterface<T, W extends ContentInterface<T>> extends AbstractCompletionInterface<W> {
-    void onSuccess(List<T> result, int offset, int limit, int count);
+@SuppressWarnings("unused")
+public interface CompletionInterface<T, W extends ContentInterface<T>> extends AbstractCompletionInterface {
+    void onSuccess(List<T> result, Integer offset, Integer limit, int count);
 }

@@ -33,7 +33,7 @@ public class Mention extends Base {
     }
 
     public Info.Reference getBlog() {
-        return blog;
+        return this.blog;
     }
 
     @Override

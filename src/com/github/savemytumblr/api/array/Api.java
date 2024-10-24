@@ -30,31 +30,31 @@ public abstract class Api<T, W extends ContentInterface<T>> extends com.github.s
     private final Integer offset;
     private final Integer limit;
 
-    protected Api(Integer offset, Integer limit) {
-        this.offset = offset;
-        this.limit = limit;
+    protected Api(Integer iOffset, Integer iLimit) {
+        this.offset = iOffset;
+        this.limit = iLimit;
     }
 
     @Override
-    public int getLimit() {
-        return limit;
+    public Integer getLimit() {
+        return this.limit;
     }
 
     @Override
-    public int getOffset() {
-        return offset;
+    public Integer getOffset() {
+        return this.offset;
     }
 
     @Override
     public Runnable call(Executor executor, Logger logger, List<T> container, Map<String, String> queryParams,
-            AuthInterface authInterface, int offset, int limit, CompletionInterface<T, W> onCompletion) {
+            AuthInterface authInterface, Integer iOffset, Integer iLimit, CompletionInterface<T, W> onCompletion) {
         /*
          * limit Number The number of results to return: 1–20, inclusive default: 20
          * offset Number Result to start at default: 0
          */
 
-        queryParams.put("limit", String.valueOf(limit));
-        queryParams.put("offset", String.valueOf(offset));
+        queryParams.put("limit", String.valueOf(iLimit));
+        queryParams.put("offset", String.valueOf(iOffset));
 
         return new TumblrCall<>(executor, logger, this, queryParams, authInterface, onCompletion);
     }

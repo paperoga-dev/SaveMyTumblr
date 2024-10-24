@@ -31,7 +31,7 @@ public class Color extends Base {
     }
 
     public int getColor() {
-        return color;
+        return this.color;
     }
 
     @Override
