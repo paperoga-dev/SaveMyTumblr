@@ -21,19 +21,22 @@ package com.github.savemytumblr.blog.array;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.UUID;
 
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
 import com.github.savemytumblr.api.array.ContentInterface;
+import com.github.savemytumblr.api.array.Uuidable;
 
 public interface Followers {
-    class User {
+    class User implements Uuidable {
         private String name;
         private boolean following;
         private String url;
         private Date updated;
+        private String uuid;
 
         User(JSONObject userObject) throws JSONException {
             super();
@@ -42,6 +45,7 @@ public interface Followers {
             this.following = userObject.getBoolean("following");
             this.url = userObject.getString("url");
             this.updated = new Date(userObject.getInt("updated") * 1000L);
+            this.uuid = UUID.randomUUID().toString();
         }
 
         public String getName() {
@@ -58,6 +62,11 @@ public interface Followers {
 
         public Date getUpdated() {
             return this.updated;
+        }
+
+        @Override
+        public String getUuid() {
+            return this.uuid;
         }
     }
 

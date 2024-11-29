@@ -25,12 +25,14 @@ import java.util.List;
 import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeSet;
+import java.util.UUID;
 
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
 import com.github.savemytumblr.api.array.ContentInterface;
+import com.github.savemytumblr.api.array.Uuidable;
 import com.github.savemytumblr.blog.simple.Info;
 import com.github.savemytumblr.posts.layout.Ask;
 import com.github.savemytumblr.posts.layout.Rows;
@@ -269,13 +271,14 @@ public interface Post {
         }
     }
 
-    class Item extends Trail {
+    class Item extends Trail implements Uuidable {
         private Date timestamp;
         private List<String> tags;
         private String url;
         private String shortUrl;
         private String summary;
         private String json;
+        private String uuid;
 
         public Item(JSONObject postObject) throws JSONException, com.github.savemytumblr.exception.RuntimeException {
             super(postObject, postObject);
@@ -285,6 +288,7 @@ public interface Post {
             this.url = postObject.getString("post_url");
             this.shortUrl = postObject.getString("short_url");
             this.summary = postObject.optString("summary", "");
+            this.uuid = UUID.randomUUID().toString();
 
             this.tags = new ArrayList<>();
             JSONArray jsonTags = postObject.optJSONArray("tags");
@@ -332,6 +336,11 @@ public interface Post {
             res += "</small><br><a href=\"" + getUrl() + "\" target=\"_blank\">Tumblr link</a></body></html>";
 
             return res;
+        }
+
+        @Override
+        public String getUuid() {
+            return this.uuid;
         }
     }
 

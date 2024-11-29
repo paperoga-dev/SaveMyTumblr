@@ -21,18 +21,23 @@ package com.github.savemytumblr.api.array;
 import java.util.List;
 import java.util.Map;
 
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import com.github.savemytumblr.TumblrClient.Executor;
 import com.github.savemytumblr.TumblrClient.Logger;
 import com.github.savemytumblr.api.AuthInterface;
 
-public abstract class Api<T, W extends ContentInterface<T>> extends com.github.savemytumblr.api.Api<W>
+public abstract class Api<T extends Uuidable, W extends ContentInterface<T>> extends com.github.savemytumblr.api.Api<W>
         implements ApiInterface<T, W> {
     private final Integer offset;
     private final Integer limit;
+    private Integer tumblrNextOffset;
 
     protected Api(Integer iOffset, Integer iLimit) {
         this.offset = iOffset;
         this.limit = iLimit;
+        this.tumblrNextOffset = -1;
     }
 
     @Override
@@ -43,6 +48,20 @@ public abstract class Api<T, W extends ContentInterface<T>> extends com.github.s
     @Override
     public Integer getOffset() {
         return this.offset;
+    }
+
+    @Override
+    public Integer getTumblrNextOffset() {
+        return this.tumblrNextOffset;
+    }
+
+    protected void readLinks(JSONObject jsonObject) {
+        try {
+            this.tumblrNextOffset = jsonObject.getJSONObject("_links").getJSONObject("next")
+                    .getJSONObject("query_params").getInt("offset");
+        } catch (@SuppressWarnings("unused") JSONException e) {
+            this.tumblrNextOffset = -1;
+        }
     }
 
     @Override

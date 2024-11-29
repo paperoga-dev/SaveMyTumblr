@@ -19,8 +19,9 @@
 package com.github.savemytumblr.blog.array;
 
 import com.github.savemytumblr.api.array.ContentInterface;
+import com.github.savemytumblr.api.array.Uuidable;
 
-public interface ApiInterface<T, W extends ContentInterface<T>>
+public interface ApiInterface<T extends Uuidable, W extends ContentInterface<T>>
         extends com.github.savemytumblr.api.array.ApiInterface<T, W> {
     /*
      * Any class that implements this interface MUST have a public constructor with

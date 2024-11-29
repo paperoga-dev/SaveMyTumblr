@@ -25,7 +25,7 @@ import com.github.savemytumblr.TumblrClient.Executor;
 import com.github.savemytumblr.TumblrClient.Logger;
 import com.github.savemytumblr.api.AuthInterface;
 
-public interface ApiInterface<T, W extends ContentInterface<T>> {
+public interface ApiInterface<T extends Uuidable, W extends ContentInterface<T>> {
     /*
      * Any class that implements this interface MUST have a public constructor with
      * the following signature:
@@ -36,6 +36,8 @@ public interface ApiInterface<T, W extends ContentInterface<T>> {
     Integer getLimit();
 
     Integer getOffset();
+
+    Integer getTumblrNextOffset();
 
     Runnable call(Executor executor, Logger logger, List<T> container, Map<String, String> queryParams,
             AuthInterface authInterface, Integer offset, Integer limit, CompletionInterface<T, W> onCompletion);

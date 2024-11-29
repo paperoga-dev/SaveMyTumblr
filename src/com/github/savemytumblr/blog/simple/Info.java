@@ -28,9 +28,11 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import com.github.savemytumblr.api.array.Uuidable;
+
 public interface Info {
 
-    class Reference {
+    class Reference implements Uuidable {
         private String name; // String - Blog name
         private String url; // String - Blog URL
         private String uuid; // String - Blog UUID
@@ -59,8 +61,27 @@ public interface Info {
             return this.url;
         }
 
+        @Override
         public String getUuid() {
             return this.uuid;
+        }
+
+        @Override
+        public boolean equals(Object obj) {
+            if (obj == null) {
+                return false;
+            }
+
+            if (obj.getClass() != this.getClass()) {
+                return false;
+            }
+
+            return this.getUuid().equals(((Reference) obj).getUuid());
+        }
+
+        @Override
+        public int hashCode() {
+            return this.getUuid().hashCode();
         }
     }
 

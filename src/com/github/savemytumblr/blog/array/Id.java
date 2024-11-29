@@ -20,8 +20,10 @@ package com.github.savemytumblr.blog.array;
 
 import com.github.savemytumblr.api.array.Api;
 import com.github.savemytumblr.api.array.ContentInterface;
+import com.github.savemytumblr.api.array.Uuidable;
 
-public abstract class Id<T, W extends ContentInterface<T>> extends Api<T, W> implements ApiInterface<T, W> {
+public abstract class Id<T extends Uuidable, W extends ContentInterface<T>> extends Api<T, W>
+        implements ApiInterface<T, W> {
     private final String blogId;
 
     protected Id(Integer offset, Integer limit, String sBlogId) {

@@ -24,7 +24,8 @@ import com.github.savemytumblr.TumblrClient.Executor;
 import com.github.savemytumblr.TumblrClient.Logger;
 import com.github.savemytumblr.api.AuthInterface;
 
-public class TumblrCall<T, W extends ContentInterface<T>> extends com.github.savemytumblr.api.TumblrCall<W> {
+public class TumblrCall<T extends Uuidable, W extends ContentInterface<T>>
+        extends com.github.savemytumblr.api.TumblrCall<W> {
     private final CompletionInterface<T, W> onCompletion;
     private final Api<T, W> api;
 

@@ -27,6 +27,7 @@ import java.util.Map;
 import com.github.savemytumblr.api.AuthInterface;
 import com.github.savemytumblr.api.Authenticate;
 import com.github.savemytumblr.api.array.ContentInterface;
+import com.github.savemytumblr.api.array.Uuidable;
 import com.github.savemytumblr.api.simple.CompletionInterface;
 import com.github.savemytumblr.exception.BaseException;
 import com.github.savemytumblr.exception.NetworkException;
@@ -276,7 +277,7 @@ public final class TumblrClient {
     /* **** SINGLE ITEM API CALL **** */
 
     /* **** ARRAY BASED API CALL **** */
-    private <T, W extends ContentInterface<T>> void doCall(final List<T> resultList,
+    private <T extends Uuidable, W extends ContentInterface<T>> void doCall(final List<T> resultList,
             final com.github.savemytumblr.api.array.ApiInterface<T, W> obj, final Integer offset, final Integer limit,
             final Map<String, String> queryParams,
             final com.github.savemytumblr.api.array.CompletionInterface<T, W> onCompletion) {
@@ -296,7 +297,6 @@ public final class TumblrClient {
 
                     @Override
                     public void onSuccess(List<T> result, Integer iOffset, Integer iLimit, int iCount) {
-                        resultList.addAll(result);
                         if (result.isEmpty()) {
                             // This is a Tumblr bug, some array-based APIs return less items
                             // than expected. In this case, we return earlier, with the real
@@ -308,45 +308,64 @@ public final class TumblrClient {
                             return;
                         }
 
-                        Integer inNewOffset = iOffset + resultList.size();
-                        Integer inNewLimit;
+                        List<T> filtered = new ArrayList<>();
 
-                        if (iCount == -1) {
-                            // cannot get the end of the list
-
-                            if (obj.getLimit() == -1) {
-                                // the caller did not specify a limit, so the first content
-                                // is fine, we're done
-                                if (onCompletion != null) {
-                                    onCompletion.onSuccess(resultList, obj.getOffset(), obj.getLimit(),
-                                            resultList.size());
-                                }
-                                return;
+                        for (final T item : result) {
+                            if (!resultList.contains(item)) {
+                                filtered.add(item);
                             }
+                        }
 
-                            if (resultList.size() >= obj.getLimit()) {
-                                // fetched enough content, we're done
-                                if (onCompletion != null) {
-                                    onCompletion.onSuccess(resultList, obj.getOffset(), obj.getLimit(),
-                                            resultList.size());
+                        resultList.addAll(filtered);
+
+                        Integer inNewOffset = offset + filtered.size() + (filtered.isEmpty() ? 1 : 0);
+                        Integer inNewLimit = 0;
+
+                        switch (iCount) {
+                            case -2:
+                                // we know that there's an end of the list, but Tumblr does not tell us the
+                                // value
+
+                                inNewLimit = 20;
+                                break;
+
+                            case -1:
+                                // cannot get the end of the list
+
+                                if (obj.getLimit() == -1) {
+                                    // the caller did not specify a limit, so the first content
+                                    // is fine, we're done
+                                    if (onCompletion != null) {
+                                        onCompletion.onSuccess(resultList, obj.getOffset(), obj.getLimit(),
+                                                resultList.size());
+                                    }
+                                    return;
                                 }
-                                return;
-                            }
 
-                            inNewLimit = obj.getLimit() - resultList.size();
-
-                        } else {
-
-                            inNewLimit = ((obj.getLimit() == -1) ? iCount : obj.getLimit()) - resultList.size();
-
-                            if (inNewLimit <= 0) {
-                                // fetched enough content, we're done
-                                if (onCompletion != null) {
-                                    onCompletion.onSuccess(resultList, obj.getOffset(), obj.getLimit(),
-                                            resultList.size());
+                                if (resultList.size() >= obj.getLimit()) {
+                                    // fetched enough content, we're done
+                                    if (onCompletion != null) {
+                                        onCompletion.onSuccess(resultList, obj.getOffset(), obj.getLimit(),
+                                                resultList.size());
+                                    }
+                                    return;
                                 }
-                                return;
-                            }
+
+                                inNewLimit = obj.getLimit() - resultList.size();
+                                break;
+
+                            default:
+                                inNewLimit = ((obj.getLimit() == -1) ? iCount : obj.getLimit()) - resultList.size();
+
+                                if (inNewLimit <= 0) {
+                                    // fetched enough content, we're done
+                                    if (onCompletion != null) {
+                                        onCompletion.onSuccess(resultList, obj.getOffset(), obj.getLimit(),
+                                                resultList.size());
+                                    }
+                                    return;
+                                }
+                                break;
                         }
 
                         doCall(resultList, obj, inNewOffset, inNewLimit, queryParams, onCompletion);
@@ -380,7 +399,7 @@ public final class TumblrClient {
         call(clazz, new HashMap<>(), onCompletion);
     }
 
-    public <T, W extends ContentInterface<T>> void call(
+    public <T extends Uuidable, W extends ContentInterface<T>> void call(
             final Class<? extends com.github.savemytumblr.api.array.ApiInterface<T, W>> clazz, final Integer offset,
             final Integer limit, final Map<String, String> queryParams,
             final com.github.savemytumblr.api.array.CompletionInterface<T, W> onCompletion) {
@@ -396,20 +415,20 @@ public final class TumblrClient {
         }
     }
 
-    public <T, W extends ContentInterface<T>> void call(
+    public <T extends Uuidable, W extends ContentInterface<T>> void call(
             final Class<? extends com.github.savemytumblr.api.array.ApiInterface<T, W>> clazz, final Integer offset,
             final Map<String, String> queryParams,
             final com.github.savemytumblr.api.array.CompletionInterface<T, W> onCompletion) {
         call(clazz, offset, 20, queryParams, onCompletion);
     }
 
-    public <T, W extends ContentInterface<T>> void call(
+    public <T extends Uuidable, W extends ContentInterface<T>> void call(
             final Class<? extends com.github.savemytumblr.api.array.ApiInterface<T, W>> clazz, final Integer offset,
             final Integer limit, final com.github.savemytumblr.api.array.CompletionInterface<T, W> onCompletion) {
         call(clazz, offset, limit, new HashMap<>(), onCompletion);
     }
 
-    public <T, W extends ContentInterface<T>> void call(
+    public <T extends Uuidable, W extends ContentInterface<T>> void call(
             final Class<? extends com.github.savemytumblr.api.array.ApiInterface<T, W>> clazz, final Integer offset,
             final com.github.savemytumblr.api.array.CompletionInterface<T, W> onCompletion) {
         call(clazz, offset, 20, new HashMap<>(), onCompletion);
@@ -435,7 +454,7 @@ public final class TumblrClient {
         call(clazz, blogId, new HashMap<>(), onCompletion);
     }
 
-    public <T, W extends ContentInterface<T>> void call(
+    public <T extends Uuidable, W extends ContentInterface<T>> void call(
             final Class<? extends com.github.savemytumblr.blog.array.ApiInterface<T, W>> clazz, final String blogId,
             final Integer offset, final Integer limit, final Map<String, String> queryParams,
             final com.github.savemytumblr.api.array.CompletionInterface<T, W> onCompletion) {
@@ -451,21 +470,21 @@ public final class TumblrClient {
         }
     }
 
-    public <T, W extends ContentInterface<T>> void call(
+    public <T extends Uuidable, W extends ContentInterface<T>> void call(
             final Class<? extends com.github.savemytumblr.blog.array.ApiInterface<T, W>> clazz, final String blogId,
             final Integer offset, final Map<String, String> queryParams,
             final com.github.savemytumblr.api.array.CompletionInterface<T, W> onCompletion) {
         call(clazz, blogId, offset, 20, queryParams, onCompletion);
     }
 
-    public <T, W extends ContentInterface<T>> void call(
+    public <T extends Uuidable, W extends ContentInterface<T>> void call(
             final Class<? extends com.github.savemytumblr.blog.array.ApiInterface<T, W>> clazz, final String blogId,
             final Integer offset, final Integer limit,
             final com.github.savemytumblr.api.array.CompletionInterface<T, W> onCompletion) {
         call(clazz, blogId, offset, limit, new HashMap<>(), onCompletion);
     }
 
-    public <T, W extends ContentInterface<T>> void call(
+    public <T extends Uuidable, W extends ContentInterface<T>> void call(
             final Class<? extends com.github.savemytumblr.blog.array.ApiInterface<T, W>> clazz, final String blogId,
             final Integer offset, final com.github.savemytumblr.api.array.CompletionInterface<T, W> onCompletion) {
         call(clazz, blogId, offset, 20, new HashMap<>(), onCompletion);

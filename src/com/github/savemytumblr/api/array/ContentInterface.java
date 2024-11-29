@@ -20,7 +20,7 @@ package com.github.savemytumblr.api.array;
 
 import java.util.List;
 
-public interface ContentInterface<T> {
+public interface ContentInterface<T extends Uuidable> {
     int getCount();
 
     List<T> getItems();

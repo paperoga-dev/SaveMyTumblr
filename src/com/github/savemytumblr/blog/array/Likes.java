@@ -19,15 +19,26 @@
 package com.github.savemytumblr.blog.array;
 
 import java.util.List;
+import java.util.UUID;
 
 import org.json.JSONException;
 import org.json.JSONObject;
 
 import com.github.savemytumblr.api.array.ContentInterface;
+import com.github.savemytumblr.api.array.Uuidable;
 
 public interface Likes {
-    class Post {
-        // Just a placeholder
+    class Post implements Uuidable {
+        final String uuid;
+
+        public Post() {
+            this.uuid = UUID.randomUUID().toString();
+        }
+
+        @Override
+        public String getUuid() {
+            return this.uuid;
+        }
     }
 
     class Data implements ContentInterface<Post> {

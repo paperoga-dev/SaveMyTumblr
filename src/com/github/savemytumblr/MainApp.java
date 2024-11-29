@@ -133,7 +133,8 @@ public class MainApp {
             MainApp.followTab.setEnabled(false);
             new com.github.savemytumblr.ui.Converter(tf, executor);
 
-            shell.setSize(700, 600);
+            shell.setSize(display.getPrimaryMonitor().getClientArea().width * 80 / 100,
+                    display.getPrimaryMonitor().getClientArea().height * 80 / 100);
             shell.open();
 
             while (!shell.isDisposed()) {
