@@ -1,6 +1,8 @@
 package com.github.savemytumblr;
 
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.prefs.BackingStoreException;
@@ -20,8 +22,13 @@ import com.github.savemytumblr.ui.LoginBrowser;
 import com.github.savemytumblr.ui.TabItem;
 
 public class MainApp {
-    static TabItem backupTab = null;
-    static TabItem followTab = null;
+    static List<TabItem> tabs = new ArrayList<>();
+
+    static void setTabsEnabled(boolean enabled) {
+        for (TabItem tab : tabs) {
+            tab.setEnabled(enabled);
+        }
+    }
 
     @SuppressWarnings("unused")
     public static void main(String[] args) {
@@ -86,8 +93,7 @@ public class MainApp {
                     display.asyncExec(new Runnable() {
                         @Override
                         public void run() {
-                            MainApp.backupTab.setEnabled(false);
-                            MainApp.followTab.setEnabled(false);
+                            MainApp.setTabsEnabled(false);
                         }
                     });
                 }
@@ -97,8 +103,7 @@ public class MainApp {
                     display.asyncExec(new Runnable() {
                         @Override
                         public void run() {
-                            MainApp.backupTab.setEnabled(true);
-                            MainApp.followTab.setEnabled(true);
+                            MainApp.setTabsEnabled(true);
                         }
                     });
                 }
@@ -108,8 +113,7 @@ public class MainApp {
                     display.asyncExec(new Runnable() {
                         @Override
                         public void run() {
-                            MainApp.backupTab.setEnabled(false);
-                            MainApp.followTab.setEnabled(false);
+                            MainApp.setTabsEnabled(false);
                         }
                     });
                 }
@@ -127,10 +131,10 @@ public class MainApp {
             });
 
             new com.github.savemytumblr.ui.Tumblr(tc, tf);
-            MainApp.backupTab = new com.github.savemytumblr.ui.Backup(tc, tf);
-            MainApp.backupTab.setEnabled(false);
-            MainApp.followTab = new com.github.savemytumblr.ui.Follow(tc, tf);
-            MainApp.followTab.setEnabled(false);
+            MainApp.tabs.add(new com.github.savemytumblr.ui.Backup(tc, tf));
+            MainApp.tabs.add(new com.github.savemytumblr.ui.Follow(tc, tf));
+            MainApp.tabs.add(new com.github.savemytumblr.ui.Block(tc, tf));
+            MainApp.setTabsEnabled(false);
             new com.github.savemytumblr.ui.Converter(tf, executor);
 
             shell.setSize(display.getPrimaryMonitor().getClientArea().width * 80 / 100,

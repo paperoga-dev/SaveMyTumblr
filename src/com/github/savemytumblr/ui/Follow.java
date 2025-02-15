@@ -17,7 +17,6 @@ import org.eclipse.swt.widgets.TabFolder;
 
 import com.github.savemytumblr.TumblrClient;
 import com.github.savemytumblr.api.array.CompletionInterface;
-import com.github.savemytumblr.blog.array.Blocks;
 import com.github.savemytumblr.blog.array.Followers;
 import com.github.savemytumblr.blog.simple.Info;
 import com.github.savemytumblr.exception.BaseException;
@@ -27,19 +26,16 @@ public class Follow extends TabItem {
     final private TumblrClient tumblrClient;
     final private Set<String> following;
     final private Set<String> followers;
-    final private Set<String> blocked;
     final private LogText txtFollowing;
     final private LogText txtFollowers;
     final private LogText txtMutuals;
     final private LogText txtFollowingButNotFollowers;
     final private LogText txtFollowersButNotFollowing;
-    final private LogText txtBlocked;
     final private Label lblFollowingValue;
     final private Label lblFollowersValue;
     final private Label lblMutualsValue;
     final private Label lblFollowingButNotFollowersValue;
     final private Label lblFollowersButNotFollowingValue;
-    final private Label lblBlockedValue;
     final private Button btnCheck;
 
     public Follow(TumblrClient cTumblrClient, TabFolder parent) {
@@ -48,7 +44,6 @@ public class Follow extends TabItem {
         this.tumblrClient = cTumblrClient;
         this.following = new HashSet<>();
         this.followers = new HashSet<>();
-        this.blocked = new HashSet<>();
 
         GridLayout layout = new GridLayout(3, true);
         getComp().setLayout(layout);
@@ -82,18 +77,11 @@ public class Follow extends TabItem {
         this.lblFollowersButNotFollowingValue.setText("Followers but not following");
         this.lblFollowersButNotFollowingValue.setLayoutData(new GridData(SWT.LEFT, SWT.CENTER, true, false));
 
-        this.lblBlockedValue = new Label(getComp(), SWT.NONE);
-        this.lblBlockedValue.setText("Blocked");
-        this.lblBlockedValue.setLayoutData(new GridData(SWT.LEFT, SWT.CENTER, true, false));
-
         this.txtFollowingButNotFollowers = new LogText(getComp(), false);
         this.txtFollowingButNotFollowers.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
 
         this.txtFollowersButNotFollowing = new LogText(getComp(), false);
         this.txtFollowersButNotFollowing.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
-
-        this.txtBlocked = new LogText(getComp(), false);
-        this.txtBlocked.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
 
         this.btnCheck = new Button(getComp(), SWT.PUSH);
         this.btnCheck.setText("Check");
@@ -130,14 +118,12 @@ public class Follow extends TabItem {
         this.txtMutuals.clear();
         this.txtFollowersButNotFollowing.clear();
         this.txtFollowingButNotFollowers.clear();
-        this.txtBlocked.clear();
 
         updateCounter(this.lblFollowingValue, 0);
         updateCounter(this.lblFollowersValue, 0);
         updateCounter(this.lblMutualsValue, 0);
         updateCounter(this.lblFollowingButNotFollowersValue, 0);
         updateCounter(this.lblFollowersButNotFollowingValue, 0);
-        updateCounter(this.lblBlockedValue, 0);
     }
 
     static private void updateCounter(Label label, Integer value) {
@@ -223,38 +209,6 @@ public class Follow extends TabItem {
                                 Follow.this.txtFollowingButNotFollowers.appendLines(doSort(followingButNotFollowers));
                                 updateCounter(Follow.this.lblFollowingButNotFollowersValue,
                                         followingButNotFollowers.size());
-
-                                fetchBlocked();
-                            }
-                        });
-                    }
-                });
-    }
-
-    private void fetchBlocked() {
-        this.tumblrClient.call(Blocks.Api.class, this.tumblrClient.getMe().getBlogs().get(0).getName(), 0, -1,
-                new CompletionInterface<Info.Base, Blocks.Data>() {
-                    @Override
-                    public void onFailure(BaseException e) {
-                        getDisplay().asyncExec(new Runnable() {
-                            @Override
-                            public void run() {
-                                Follow.this.btnCheck.setEnabled(true);
-                            }
-                        });
-                    }
-
-                    @Override
-                    public void onSuccess(List<Info.Base> result, Integer offset, Integer limit, int count) {
-                        for (Info.Base blog : result) {
-                            Follow.this.blocked.add(blog.getName());
-                        }
-
-                        getDisplay().asyncExec(new Runnable() {
-                            @Override
-                            public void run() {
-                                Follow.this.txtBlocked.appendLines(doSort(Follow.this.blocked));
-                                updateCounter(Follow.this.lblBlockedValue, Follow.this.blocked.size());
 
                                 Follow.this.btnCheck.setEnabled(true);
                             }
