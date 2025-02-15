@@ -276,6 +276,23 @@ public final class TumblrClient {
     }
     /* **** SINGLE ITEM API CALL **** */
 
+    /* **** SINGLE ITEM ACTION CALL **** */
+    private void doCall(final com.github.savemytumblr.api.actions.ApiInterface apiInterface,
+            final Map<String, String> queryParams,
+            final com.github.savemytumblr.api.actions.CompletionInterface onCompletion) {
+        if (this.accessToken == null) {
+            for (final LoginListener listener : this.loginListeners) {
+                listener.onLoginFailure(new com.github.savemytumblr.exception.RuntimeException("Not logged"));
+            }
+
+            return;
+        }
+
+        getExecutor()
+                .execute(apiInterface.call(getExecutor(), getLogger(), queryParams, makeAuthInterface(), onCompletion));
+    }
+    /* **** SINGLE ITEM ACTION CALL **** */
+
     /* **** ARRAY BASED API CALL **** */
     private <T extends Uuidable, W extends ContentInterface<T>> void doCall(final List<T> resultList,
             final com.github.savemytumblr.api.array.ApiInterface<T, W> obj, final Integer offset, final Integer limit,
@@ -490,6 +507,22 @@ public final class TumblrClient {
         call(clazz, blogId, offset, 20, new HashMap<>(), onCompletion);
     }
     /* **** BLOG BASED API CALLS **** */
+
+    /* **** BLOG BASED ACTIONS CALLS **** */
+    public void call(final Class<? extends com.github.savemytumblr.blog.simple.actions.ApiInterface> clazz,
+            final String blogId, final Map<String, String> queryParams,
+            final com.github.savemytumblr.api.actions.CompletionInterface onCompletion) {
+
+        Class<?>[] cArg = new Class<?>[] { String.class };
+
+        try {
+            doCall(clazz.getDeclaredConstructor(cArg).newInstance(blogId), queryParams, onCompletion);
+        } catch (IllegalAccessException | InstantiationException | InvocationTargetException
+                | NoSuchMethodException e) {
+            e.printStackTrace();
+        }
+    }
+    /* **** BLOG BASED ACTIONS CALLS **** */
 
     /* **** POST BASED API CALLS **** */
     public <T> void call(final Class<? extends com.github.savemytumblr.blog.simple.ApiInterface<T>> clazz,

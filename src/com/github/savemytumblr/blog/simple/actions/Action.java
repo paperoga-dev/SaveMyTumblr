@@ -16,14 +16,12 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package com.github.savemytumblr.blog.simple;
+package com.github.savemytumblr.blog.simple.actions;
 
-import com.github.savemytumblr.api.simple.Api;
-
-public abstract class Id<T> extends Api<T> implements ApiInterface<T> {
+public abstract class Action extends com.github.savemytumblr.api.actions.Api implements ApiInterface {
     private final String blogId;
 
-    protected Id(String sBlogId) {
+    protected Action(String sBlogId) {
         this.blogId = sBlogId;
     }
 

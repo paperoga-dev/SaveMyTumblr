@@ -16,28 +16,10 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package com.github.savemytumblr.blog.simple;
+package com.github.savemytumblr.api.actions;
 
-import com.github.savemytumblr.api.simple.Api;
+import com.github.savemytumblr.api.AbstractCompletionInterface;
 
-public abstract class Id<T> extends Api<T> implements ApiInterface<T> {
-    private final String blogId;
-
-    protected Id(String sBlogId) {
-        this.blogId = sBlogId;
-    }
-
-    @Override
-    protected String getPath() {
-        /*
-         * blog-identifier String Any blog identifier
-         */
-
-        return "/blog/" + getBlogId();
-    }
-
-    @Override
-    public String getBlogId() {
-        return this.blogId;
-    }
+public interface CompletionInterface extends AbstractCompletionInterface {
+    void onSuccess();
 }

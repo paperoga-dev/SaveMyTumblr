@@ -16,28 +16,16 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package com.github.savemytumblr.blog.simple;
+package com.github.savemytumblr.blog.simple.actions.blocks;
 
-import com.github.savemytumblr.api.simple.Api;
+public class Remove extends Block {
 
-public abstract class Id<T> extends Api<T> implements ApiInterface<T> {
-    private final String blogId;
-
-    protected Id(String sBlogId) {
-        this.blogId = sBlogId;
+    public Remove(String blogId) {
+        super(blogId);
     }
 
     @Override
-    protected String getPath() {
-        /*
-         * blog-identifier String Any blog identifier
-         */
-
-        return "/blog/" + getBlogId();
-    }
-
-    @Override
-    public String getBlogId() {
-        return this.blogId;
+    protected Method getMethod() {
+        return Method.DELETE;
     }
 }

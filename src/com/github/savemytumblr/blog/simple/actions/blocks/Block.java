@@ -16,28 +16,31 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package com.github.savemytumblr.blog.simple;
+package com.github.savemytumblr.blog.simple.actions.blocks;
 
-import com.github.savemytumblr.api.simple.Api;
+import java.util.Map;
 
-public abstract class Id<T> extends Api<T> implements ApiInterface<T> {
-    private final String blogId;
+import com.github.savemytumblr.TumblrClient.Executor;
+import com.github.savemytumblr.TumblrClient.Logger;
+import com.github.savemytumblr.api.AuthInterface;
+import com.github.savemytumblr.api.actions.CompletionInterface;
+import com.github.savemytumblr.blog.simple.actions.Action;
 
-    protected Id(String sBlogId) {
-        this.blogId = sBlogId;
+public abstract class Block extends Action {
+
+    public Block(String blogId) {
+        super(blogId);
     }
 
     @Override
     protected String getPath() {
-        /*
-         * blog-identifier String Any blog identifier
-         */
-
-        return "/blog/" + getBlogId();
+        return super.getPath() + "/blocks";
     }
 
     @Override
-    public String getBlogId() {
-        return this.blogId;
+    public Runnable call(Executor executor, Logger logger, Map<String, String> queryParams, AuthInterface authInterface,
+            CompletionInterface onCompletion) {
+        // TODO Auto-generated method stub
+        return null;
     }
 }

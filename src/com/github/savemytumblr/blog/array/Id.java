@@ -38,7 +38,7 @@ public abstract class Id<T extends Uuidable, W extends ContentInterface<T>> exte
          * blog-identifier String Any blog identifier
          */
 
-        return "/blog/" + getBlogId() + ".tumblr.com";
+        return "/blog/" + getBlogId();
     }
 
     @Override

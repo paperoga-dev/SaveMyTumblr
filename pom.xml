@@ -71,7 +71,7 @@
          <dependency>
             <groupId>org.eclipse.platform</groupId>
             <artifactId>${swt.artifactId}</artifactId>
-            <version>3.127.0</version>
+            <version>3.128.0</version>
             <optional>true</optional>
             <exclusions>
                <exclusion>
@@ -97,7 +97,7 @@
          <dependency>
             <groupId>org.eclipse.platform</groupId>
             <artifactId>${swt.artifactId}</artifactId>
-            <version>3.127.0</version>
+            <version>3.128.0</version>
             <optional>true</optional>
             <exclusions>
                <exclusion>
@@ -123,7 +123,7 @@
          <dependency>
             <groupId>org.eclipse.platform</groupId>
             <artifactId>${swt.artifactId}</artifactId>
-            <version>3.127.0</version>
+            <version>3.128.0</version>
             <optional>true</optional>
             <exclusions>
                <exclusion>
@@ -149,7 +149,7 @@
          <dependency>
             <groupId>org.eclipse.platform</groupId>
             <artifactId>${swt.artifactId}</artifactId>
-            <version>3.127.0</version>
+            <version>3.128.0</version>
             <optional>true</optional>
             <exclusions>
                <exclusion>

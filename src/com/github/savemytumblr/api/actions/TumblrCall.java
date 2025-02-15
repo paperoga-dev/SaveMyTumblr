@@ -16,30 +16,28 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package com.github.savemytumblr.api;
+package com.github.savemytumblr.api.actions;
 
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.util.Map;
 
-import org.json.JSONObject;
-
 import com.github.savemytumblr.TumblrClient.Executor;
 import com.github.savemytumblr.TumblrClient.Logger;
+import com.github.savemytumblr.api.AbstractCompletionInterface;
+import com.github.savemytumblr.api.AuthInterface;
 
-public abstract class TumblrCall<T> extends com.github.savemytumblr.TumblrCall {
-    private final Api<T> api;
+public class TumblrCall extends com.github.savemytumblr.TumblrCall {
+    private final Api api;
     private final Map<String, String> queryParams;
 
-    protected TumblrCall(Executor cExecutor, Logger iLogger, Api<T> cApi, Map<String, String> mQueryParams,
+    protected TumblrCall(Executor cExecutor, Logger iLogger, Api cApi, Map<String, String> mQueryParams,
             AuthInterface iAuthInterface, AbstractCompletionInterface iOnCompletion) {
         super(cExecutor, iLogger, iAuthInterface, iOnCompletion);
 
         this.api = cApi;
         this.queryParams = mQueryParams;
     }
-
-    protected abstract void process(final T output);
 
     @Override
     protected HttpRequest.Builder doSetupCall() {
@@ -48,15 +46,6 @@ public abstract class TumblrCall<T> extends com.github.savemytumblr.TumblrCall {
 
     @Override
     protected void doProcessResponse(HttpResponse<String> response) {
-        try {
-            final JSONObject rootObj = new JSONObject(response.body());
-
-            this.getLogger().info("Response body: " + rootObj.toString(2));
-
-            process(this.api.readData(rootObj.getJSONObject("response")));
-        } catch (final com.github.savemytumblr.exception.RuntimeException e) {
-            e.printStackTrace();
-            this.reportFailure(e);
-        }
+        // nothing to do here, HTTP status code is already processed
     }
 }

@@ -16,22 +16,27 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package com.github.savemytumblr.api;
+package com.github.savemytumblr.api.actions;
 
 import java.net.URI;
 import java.net.http.HttpRequest;
+import java.net.http.HttpRequest.BodyPublishers;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.json.JSONException;
-import org.json.JSONObject;
-
 import com.github.savemytumblr.Constants;
+import com.github.savemytumblr.TumblrClient.Executor;
+import com.github.savemytumblr.TumblrClient.Logger;
 import com.github.savemytumblr.Url;
+import com.github.savemytumblr.api.AuthInterface;
 
 import io.github.cdimascio.dotenv.Dotenv;
 
-public abstract class Api<T> {
+public abstract class Api implements ApiInterface {
+
+    public enum Method {
+        POST, DELETE
+    }
 
     @SuppressWarnings("static-method")
     protected boolean requiresApiKey() {
@@ -39,6 +44,8 @@ public abstract class Api<T> {
     }
 
     protected abstract String getPath();
+
+    protected abstract Method getMethod();
 
     protected Map<String, String> defaultParams() {
         Map<String, String> m = new HashMap<>();
@@ -51,20 +58,26 @@ public abstract class Api<T> {
         return m;
     }
 
-    protected abstract T readData(JSONObject jsonObject)
-            throws JSONException, com.github.savemytumblr.exception.RuntimeException;
-
     protected HttpRequest.Builder setupCall(Map<String, ?> queryParams) {
         Url url = new Url(Constants.API_ENDPOINT, getPath());
 
+        Url queryUrl = new Url("", "");
         for (Map.Entry<String, ?> entry : defaultParams().entrySet()) {
-            url.addParameter(entry.getKey(), entry.getValue().toString());
+            queryUrl.addParameter(entry.getKey(), entry.getValue().toString());
         }
 
         for (Map.Entry<String, ?> entry : queryParams.entrySet()) {
-            url.addParameter(entry.getKey(), entry.getValue().toString());
+            queryUrl.addParameter(entry.getKey(), entry.getValue().toString());
         }
 
-        return HttpRequest.newBuilder(URI.create(url.toString()));
+        return HttpRequest.newBuilder().uri(URI.create(url.toString()))
+                .header("Content-Type", "application/x-www-form-urlencoded")
+                .method(this.getMethod().toString(), BodyPublishers.ofString(queryUrl.toString()));
+    }
+
+    @Override
+    public Runnable call(Executor executor, Logger logger, Map<String, String> queryParams, AuthInterface authInterface,
+            CompletionInterface onCompletion) {
+        return new TumblrCall(executor, logger, this, queryParams, authInterface, onCompletion);
     }
 }
