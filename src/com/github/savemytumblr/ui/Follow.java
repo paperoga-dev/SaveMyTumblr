@@ -12,6 +12,7 @@ import org.eclipse.swt.events.SelectionListener;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
+import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.TabFolder;
 
@@ -45,47 +46,58 @@ public class Follow extends TabItem {
         this.following = new HashSet<>();
         this.followers = new HashSet<>();
 
-        GridLayout layout = new GridLayout(3, true);
-        getComp().setLayout(layout);
+        getComp().setLayout(new GridLayout(1, false));
 
-        this.lblFollowingValue = new Label(getComp(), SWT.NONE);
+        Composite firstRow = new Composite(getComp(), SWT.NONE);
+        firstRow.setLayout(new GridLayout(3, true));
+        firstRow.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
+
+        this.lblFollowingValue = new Label(firstRow, SWT.NONE);
         this.lblFollowingValue.setText("Following");
         this.lblFollowingValue.setLayoutData(new GridData(SWT.LEFT, SWT.CENTER, true, false));
 
-        this.lblFollowersValue = new Label(getComp(), SWT.NONE);
+        this.lblFollowersValue = new Label(firstRow, SWT.NONE);
         this.lblFollowersValue.setText("Followers");
         this.lblFollowersValue.setLayoutData(new GridData(SWT.LEFT, SWT.CENTER, true, false));
 
-        this.lblMutualsValue = new Label(getComp(), SWT.NONE);
+        this.lblMutualsValue = new Label(firstRow, SWT.NONE);
         this.lblMutualsValue.setText("Mutuals");
         this.lblMutualsValue.setLayoutData(new GridData(SWT.LEFT, SWT.CENTER, true, false));
 
-        this.txtFollowing = new LogText(getComp(), false);
+        this.txtFollowing = new LogText(firstRow, false);
         this.txtFollowing.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
 
-        this.txtFollowers = new LogText(getComp(), false);
+        this.txtFollowers = new LogText(firstRow, false);
         this.txtFollowers.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
 
-        this.txtMutuals = new LogText(getComp(), false);
+        this.txtMutuals = new LogText(firstRow, false);
         this.txtMutuals.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
 
-        this.lblFollowingButNotFollowersValue = new Label(getComp(), SWT.NONE);
+        Composite secondRow = new Composite(getComp(), SWT.NONE);
+        secondRow.setLayout(new GridLayout(2, true));
+        secondRow.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
+
+        this.lblFollowingButNotFollowersValue = new Label(secondRow, SWT.NONE);
         this.lblFollowingButNotFollowersValue.setText("Following but not followers");
         this.lblFollowingButNotFollowersValue.setLayoutData(new GridData(SWT.LEFT, SWT.CENTER, true, false));
 
-        this.lblFollowersButNotFollowingValue = new Label(getComp(), SWT.NONE);
+        this.lblFollowersButNotFollowingValue = new Label(secondRow, SWT.NONE);
         this.lblFollowersButNotFollowingValue.setText("Followers but not following");
         this.lblFollowersButNotFollowingValue.setLayoutData(new GridData(SWT.LEFT, SWT.CENTER, true, false));
 
-        this.txtFollowingButNotFollowers = new LogText(getComp(), false);
+        this.txtFollowingButNotFollowers = new LogText(secondRow, false);
         this.txtFollowingButNotFollowers.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
 
-        this.txtFollowersButNotFollowing = new LogText(getComp(), false);
+        this.txtFollowersButNotFollowing = new LogText(secondRow, false);
         this.txtFollowersButNotFollowing.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
 
-        this.btnCheck = new Button(getComp(), SWT.PUSH);
+        Composite thirdRow = new Composite(getComp(), SWT.NONE);
+        thirdRow.setLayout(new GridLayout(1, true));
+        thirdRow.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
+
+        this.btnCheck = new Button(thirdRow, SWT.PUSH);
         this.btnCheck.setText("Check");
-        this.btnCheck.setLayoutData(new GridData(SWT.RIGHT, SWT.CENTER, true, false, 3, 1));
+        this.btnCheck.setLayoutData(new GridData(SWT.RIGHT, SWT.CENTER, true, false));
 
         this.btnCheck.addSelectionListener(new SelectionListener() {
             @Override
