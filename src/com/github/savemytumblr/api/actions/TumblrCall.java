@@ -24,19 +24,20 @@ import java.util.Map;
 
 import com.github.savemytumblr.TumblrClient.Executor;
 import com.github.savemytumblr.TumblrClient.Logger;
-import com.github.savemytumblr.api.AbstractCompletionInterface;
 import com.github.savemytumblr.api.AuthInterface;
 
 public class TumblrCall extends com.github.savemytumblr.TumblrCall {
     private final Api api;
     private final Map<String, String> queryParams;
+    private final CompletionInterface onCompletion;
 
     protected TumblrCall(Executor cExecutor, Logger iLogger, Api cApi, Map<String, String> mQueryParams,
-            AuthInterface iAuthInterface, AbstractCompletionInterface iOnCompletion) {
+            AuthInterface iAuthInterface, CompletionInterface iOnCompletion) {
         super(cExecutor, iLogger, iAuthInterface, iOnCompletion);
 
         this.api = cApi;
         this.queryParams = mQueryParams;
+        this.onCompletion = iOnCompletion;
     }
 
     @Override
@@ -46,6 +47,11 @@ public class TumblrCall extends com.github.savemytumblr.TumblrCall {
 
     @Override
     protected void doProcessResponse(HttpResponse<String> response) {
-        // nothing to do here, HTTP status code is already processed
+        getExecutor().execute(new Runnable() {
+            @Override
+            public void run() {
+                TumblrCall.this.onCompletion.onSuccess();
+            }
+        });
     }
 }

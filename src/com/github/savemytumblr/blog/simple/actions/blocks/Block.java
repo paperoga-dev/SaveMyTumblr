@@ -18,12 +18,6 @@
 
 package com.github.savemytumblr.blog.simple.actions.blocks;
 
-import java.util.Map;
-
-import com.github.savemytumblr.TumblrClient.Executor;
-import com.github.savemytumblr.TumblrClient.Logger;
-import com.github.savemytumblr.api.AuthInterface;
-import com.github.savemytumblr.api.actions.CompletionInterface;
 import com.github.savemytumblr.blog.simple.actions.Action;
 
 public abstract class Block extends Action {
@@ -35,12 +29,5 @@ public abstract class Block extends Action {
     @Override
     protected String getPath() {
         return super.getPath() + "/blocks";
-    }
-
-    @Override
-    public Runnable call(Executor executor, Logger logger, Map<String, String> queryParams, AuthInterface authInterface,
-            CompletionInterface onCompletion) {
-        // TODO Auto-generated method stub
-        return null;
     }
 }
