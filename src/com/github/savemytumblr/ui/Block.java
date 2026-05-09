@@ -303,6 +303,8 @@ public class Block extends TabItem {
                             public void run() {
                                 Block.this.lstBlocked.add(blogs.getFirst());
                                 Block.this.lstUnblocked.remove(blogs.getFirst());
+                                updateCounter(Block.this.lblBlockedValue, Block.this.lstBlocked.getItemCount());
+                                updateCounter(Block.this.lblUnblockedValue, Block.this.lstUnblocked.getItemCount());
                                 Block.this.blockAll(blogs.subList(1, blogs.size()));
                             }
                         });
@@ -338,6 +340,8 @@ public class Block extends TabItem {
                             public void run() {
                                 Block.this.lstUnblocked.add(blogs.getFirst());
                                 Block.this.lstBlocked.remove(blogs.getFirst());
+                                updateCounter(Block.this.lblBlockedValue, Block.this.lstBlocked.getItemCount());
+                                updateCounter(Block.this.lblUnblockedValue, Block.this.lstUnblocked.getItemCount());
                                 Block.this.unblockAll(blogs.subList(1, blogs.size()));
                             }
                         });
